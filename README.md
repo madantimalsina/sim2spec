@@ -7,7 +7,7 @@ This repository is designed for students who are new to HPC workflows and want a
 - generate QA summaries and plots,
 - compare multiple run configurations,
 - track provenance and reproducibility,
-- and profile performance on Perlmutter (A100 -GPU).
+- and profile performance on Perlmutter (A100 GPU).
 
 This project does **not** replace `larnd-sim`. Instead, it organizes the workflow around it.
 
@@ -18,21 +18,32 @@ This project does **not** replace `larnd-sim`. Instead, it organizes the workflo
 
 ## Quick start
 
-### 1. Set up the environment
+### 1. Clone the repository
+
+```bash
+export MYWORKDIR=$PSCRATCH/HPC_intro
+mkdir -p "$MYWORKDIR"
+cd "$MYWORKDIR"
+
+git clone https://github.com/madantimalsina/sim2spec.git
+cd sim2spec
+```
+
+### 2. Set up the environment
 
 ```bash
 source setup.sh
 bash install.sh
 ```
 
-### 2. Activate the virtual environment
+### 3. Activate the virtual environment
 
 ```bash
 source setup.sh
 source "$venv_name/bin/activate"
 ```
 
-### 3. Quick environment check
+### 4. Quick environment check
 
 Run these checks before trying a real workflow step:
 
@@ -43,6 +54,20 @@ python -c "import larndsim; print('larndsim ok')"
 ```
 
 If these work, your Python environment is in good shape.
+
+## Prefer batch jobs?
+
+Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
+
+```bash
+sbatch scripts/sbatch_day1_smoke.sh
+sbatch scripts/sbatch_day2_baseline.sh
+sbatch scripts/sbatch_day4_sweep.sh
+sbatch scripts/sbatch_day5_profile_baseline.sh
+sbatch scripts/sbatch_day5_profile_compare.sh
+```
+
+Remember to replace `<your_account>` with your NERSC project account before submitting.
 
 ## Basic workflow examples
 
@@ -58,7 +83,12 @@ export OUTBASE=$WORKDIR/runs
 
 mkdir -p "$OUTBASE"
 
-sim2spec run   --larndsim-dir "$LARNDSIM_DIR"   --config 2x2   --input "$INPUT_H5"   --outdir "$OUTBASE/day2_baseline"   --n-events 5
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day2_baseline" \
+  --n-events 5
 ```
 
 ### QA on an existing run
@@ -70,7 +100,13 @@ sim2spec qa --run-dir "$OUTBASE/day2_baseline/run"
 ### Sweep run
 
 ```bash
-sim2spec sweep   --larndsim-dir "$LARNDSIM_DIR"   --config 2x2   --input "$INPUT_H5"   --outdir "$OUTBASE/day4_sweep"   --sweep "$WORKDIR/configs/sweep.yaml"   --n-events 5
+sim2spec sweep \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day4_sweep" \
+  --sweep "$WORKDIR/configs/sweep.yaml" \
+  --n-events 5
 ```
 
 ### Profiling run
@@ -78,24 +114,16 @@ sim2spec sweep   --larndsim-dir "$LARNDSIM_DIR"   --config 2x2   --input "$INPUT
 ```bash
 export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
 
-sim2spec run   --larndsim-dir "$LARNDSIM_DIR"   --config 2x2   --input "$INPUT_H5"   --outdir "$OUTBASE/day5_profile_baseline"   --n-events 10   --profiler nsys
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day5_profile_baseline" \
+  --n-events 10 \
+  --profiler nsys
 
 sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
 ```
-
-## Prefer batch jobs?
-
-Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
-
-```bash
-sbatch scripts/sbatch_day1_smoke.sh
-sbatch scripts/sbatch_day2_baseline.sh
-sbatch scripts/sbatch_day4_sweep.sh
-sbatch scripts/sbatch_day5_profile_baseline.sh
-sbatch scripts/sbatch_day5_profile_compare.sh
-```
-
-Remember to replace `<your_account>` with your NERSC project account before submitting.
 
 ## Repository structure
 
@@ -179,7 +207,7 @@ What it does:
 
 Why it matters:
 - this is the first layer of output validation
-- it helps answer the question: “does this run look reasonable?”
+- it helps answer the question: "does this run look reasonable?"
 
 ---
 
@@ -268,28 +296,9 @@ Why it matters:
 
 ---
 
-### [`scripts/`](scripts/)
-
-This folder contains the student-facing sbatch submission scripts, one per day that requires GPU compute.
-
-Contents:
-- `sbatch_day1_smoke.sh` — smoke test (1 event)
-- `sbatch_day2_baseline.sh` — baseline run (5 events)
-- `sbatch_day4_sweep.sh` — parameter sweep (3 events per variant)
-- `sbatch_day5_profile_baseline.sh` — profiling baseline (10 events, nsys)
-- `sbatch_day5_profile_compare.sh` — profiling comparison (10 events, nsys, TPB=128)
-
-Why it matters:
-- students who prefer batch submission over interactive nodes can use these directly
-- each script includes a GPU pre-flight check and structured output directories
-
----
-
 ### [`setup.sh`](setup.sh)
 
 This is the lightweight environment setup script.
-
-It follows the style of `setup.inc.sh` from `larnd-sim-example`.
 
 What it does:
 - unloads any conflicting Python module
@@ -306,8 +315,6 @@ Why it matters:
 
 This is the main installation script for terminal users.
 
-It follows the style of `install_larnd_sim.sh` from `larnd-sim-example`.
-
 What it does:
 - creates a virtual environment
 - installs Python dependencies
@@ -316,6 +323,19 @@ What it does:
 
 Why it matters:
 - this is the easiest way for terminal users to get started without following the full notebook
+
+---
+
+### [`plot_validation.py`](plot_validation.py)
+
+Standalone script for producing validation plots directly from an output HDF5 file.
+
+```bash
+python plot_validation.py "$OUTBASE/day2_baseline/run/output.h5" --outdir "$OUTBASE/day3_baseline/run"
+```
+
+Why it matters:
+- a quick way to visualise any run output without running the full QA pipeline
 
 ---
 
@@ -342,6 +362,8 @@ What it contains:
 Why it matters:
 - this is the main file students should read first
 
+---
+
 ### [`sim2spec_perlmutter_bootcamp.ipynb`](sim2spec_perlmutter_bootcamp.ipynb)
 
 The main student-facing notebook. Mirrors `ProjectReadMe.md` day by day with executable cells, live run outputs, and `srun`-based GPU dispatch so students can run everything from inside JupyterHub.
@@ -351,17 +373,6 @@ Why it matters:
 - includes real Perlmutter output examples so students know what to expect
 
 ---
-
-### [`plot_validation.py`](plot_validation.py)
-
-Standalone script for producing validation plots directly from an output HDF5 file.
-
-```bash
-python plot_validation.py "$OUTBASE/day2_baseline/run/output.h5" --outdir "$OUTBASE/day3_baseline/run"
-```
-
-Why it matters:
-- a quick way to visualise any run output without running the full QA pipeline
 
 ## Suggested reading order
 
