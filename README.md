@@ -83,6 +83,20 @@ sim2spec run   --larndsim-dir "$LARNDSIM_DIR"   --config 2x2   --input "$INPUT_H
 sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
 ```
 
+## Prefer batch jobs?
+
+Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
+
+```bash
+sbatch scripts/sbatch_day1_smoke.sh
+sbatch scripts/sbatch_day2_baseline.sh
+sbatch scripts/sbatch_day4_sweep.sh
+sbatch scripts/sbatch_day5_profile_baseline.sh
+sbatch scripts/sbatch_day5_profile_compare.sh
+```
+
+Remember to replace `<your_account>` with your NERSC project account before submitting.
+
 ## Repository structure
 
 Below is a beginner-friendly explanation of the main files and folders in the repository.
