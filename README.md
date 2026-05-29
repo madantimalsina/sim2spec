@@ -7,7 +7,7 @@ This repository is designed for students who are new to HPC workflows and want a
 - generate QA summaries and plots,
 - compare multiple run configurations,
 - track provenance and reproducibility,
-- and profile performance on Perlmutter.
+- and profile performance on Perlmutter (A100 -GPU).
 
 This project does **not** replace `larnd-sim`. Instead, it organizes the workflow around it.
 
