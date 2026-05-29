@@ -1,0 +1,14 @@
+# Each variant runs with a distinct random seed so participants can observe
+# how stochastic variation affects packet counts and ADC distributions.
+variants:
+  - name: seed_42
+    seed: 42
+
+  - name: seed_1337
+    seed: 1337
+
+  - name: seed_55555
+    seed: 55555
+
+  - name: seed_99999
+    seed: 99999

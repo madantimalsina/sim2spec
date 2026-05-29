@@ -1,0 +1,8 @@
+pyyaml>=6.0
+h5py>=3.9
+numpy>=1.23
+pandas>=2.0
+matplotlib>=3.7
+awkward>=2.0
+fire>=0.5
+cupy-cuda12x
