@@ -10,7 +10,6 @@ proposals/
 *.nsys-rep
 *.qdrep
 *.ncu-rep
-*.hdf5
 .DS_Store
 .ipynb_checkpoints/
 .sixth/
