@@ -55,20 +55,6 @@ python -c "import larndsim; print('larndsim ok')"
 
 If these work, your Python environment is in good shape.
 
-## Prefer batch jobs?
-
-Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
-
-```bash
-sbatch scripts/sbatch_day1_smoke.sh
-sbatch scripts/sbatch_day2_baseline.sh
-sbatch scripts/sbatch_day4_sweep.sh
-sbatch scripts/sbatch_day5_profile_baseline.sh
-sbatch scripts/sbatch_day5_profile_compare.sh
-```
-
-Remember to replace `<your_account>` with your NERSC project account before submitting.
-
 ## Basic workflow examples
 
 ### Baseline run
@@ -124,6 +110,19 @@ sim2spec run \
 
 sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
 ```
+## Prefer batch jobs?
+
+Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
+
+```bash
+sbatch scripts/sbatch_day1_smoke.sh
+sbatch scripts/sbatch_day2_baseline.sh
+sbatch scripts/sbatch_day4_sweep.sh
+sbatch scripts/sbatch_day5_profile_baseline.sh
+sbatch scripts/sbatch_day5_profile_compare.sh
+```
+
+Remember to replace `<your_account>` with your NERSC project account before submitting.
 
 ## Repository structure
 
