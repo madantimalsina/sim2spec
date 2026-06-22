@@ -52,7 +52,6 @@ python -c "import cupy as cp; print(int(cp.arange(10).sum()))"
 ```bash
 # Validate larnd-sim install
 python -c "import larndsim; print('larndsim ok')"
-# python "$WORKDIR/larnd-sim/cli/simulate_pixels.py" --help | head
 ```
 
 ```bash
@@ -65,20 +64,22 @@ export HDF5_USE_FILE_LOCKING=0
 export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
 export OUTBASE=$WORKDIR/runs
 mkdir -p "$OUTBASE"
+```
 
+```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT>
+salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT> --gpus=1 --ntasks=1 --cpus-per-task=8
+```
 
-
+```bash
+# run simulation workflow
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day1_smoke" \
   --n-events 1
-
-sim2spec qa --run-dir "$OUTBASE/day1_smoke/run"
 ```
 
 > **Alternatively**, if you prefer to submit the smoke test as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
@@ -90,16 +91,25 @@ sim2spec qa --run-dir "$OUTBASE/day1_smoke/run"
 > Outputs will be written to `$OUTBASE/day1_smoke_sbatch/run` and job logs will appear as `day1_smoke_<jobid>.out` / `.err` in the directory where you submitted the job.
 
 ```bash
-# Check smoke test outputs
+# Inspect the run directory
 ls -R "$OUTBASE/day1_smoke/run"
+```
+
+```bash
+# Run QA on the baseline
+sim2spec qa --run-dir "$OUTBASE/day1_smoke/run"
+```
+
+```bash
+# Inspect the QA metrics
 cat "$OUTBASE/day1_smoke/run/qa/metrics.json" | head
 ```
+
 
 ### What to show on Day 1
 
 - `python -c "import cupy..."` returning `45`
-- `sim2spec --help`
-- `simulate_pixels.py --help`
+- `validate larnd-sim install`
 - optional smoke-test output and `qa/metrics.json`
 
 ### Achieved by end of Day 1
@@ -125,14 +135,23 @@ export OUTBASE=$WORKDIR/runs
 
 cd $WORKDIR
 pwd
+```
 
+```bash
+# Validate the Python environment and the main dependencies
 source setup.sh
 source "$venv_name/bin/activate"
+```
+
+```bash
 
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT>
+salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT> --gpus=1 --ntasks=1 --cpus-per-task=8
+```
 
+```bash
+# run simulation workflow
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
@@ -220,13 +239,20 @@ export OUTBASE=$WORKDIR/runs
 
 cd $WORKDIR
 pwd
+```
 
+```bash
+# Validate the Python environment and the main dependencies
 source setup.sh
 source "$venv_name/bin/activate"
+```
 
+```bash
 # Run QA on the baseline (from day 2 to see the output.h5 file exists)
 sim2spec qa --run-dir "$OUTBASE/day2_baseline/run"
+```
 
+```bash
 # Save plots into day3 (new folder)
 export OUTPLOTS="$OUTBASE/day3_baseline/run"
 mkdir -p "$OUTPLOTS"
@@ -340,15 +366,22 @@ export OUTBASE=$WORKDIR/runs
 
 cd $WORKDIR
 pwd
+```
 
+```bash
+# Validate the Python environment and the main dependencies
 source setup.sh
 source "$venv_name/bin/activate"
+```
 
+```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
 salloc -C gpu -q interactive -t 00:60:00 -A <YOUR_ACCOUNT>
+```
 
-
+```bash
+# run simulation workflow 
 sim2spec sweep \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
@@ -492,15 +525,22 @@ export OUTBASE=$WORKDIR/runs
 
 cd $WORKDIR
 pwd
+```
 
+```bash
+# Validate the Python environment and the main dependencies
 source setup.sh
 source "$venv_name/bin/activate"
+```
 
+```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
 salloc -C gpu -q interactive -t 00:60:00 -A <YOUR_ACCOUNT>
+```
 
-
+```bash
+# run simulation workflow
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
@@ -508,7 +548,6 @@ sim2spec run \
   --outdir "$OUTBASE/day5_profile_baseline" \
   --n-events 10 \
   --profiler nsys
-
 ```
 
 > **Alternatively**, if you prefer to submit the baseline profile run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
@@ -560,7 +599,9 @@ sim2spec run \
   --outdir "$OUTBASE/day5_profile_compare" \
   --n-events 10 \
   --profiler nsys
+```
 
+```bash
 # Write profile summary
 sim2spec profile --run-dir "$OUTBASE/day5_profile_compare/run"
 ```
