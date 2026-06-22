@@ -54,7 +54,7 @@ python -c "import cupy as cp; print(int(cp.arange(10).sum()))"
 python -c "import larndsim; print('larndsim ok')"
 ```
 
-### Smoke test run
+### Smoke test
 ```bash
 # This is a very small end-to-end test to make sure the workflow runs.
 export WORKDIR=$PSCRATCH/HPC_intro/sim2spec
