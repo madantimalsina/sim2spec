@@ -13,7 +13,7 @@ This project does **not** replace `larnd-sim`. Instead, it organizes the workflo
 
 ## Repository guides
 
-- [ProjectReadMe.md](ProjectReadMe.md) — student-facing day-by-day guide (terminal workflow)
+- [ProjectReadMe.md](ProjectReadMe.md) — project-facing day-by-day guide for participant  (terminal workflow)
 - [sim2spec_perlmutter_bootcamp.ipynb](sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for notebook users
 
 ## Quick start
@@ -56,7 +56,7 @@ python -c "import larndsim; print('larndsim ok')"
 If these work, your Python environment is in good shape.
 
 ## Basic workflow examples
-
+Note: We will follow [ProjectReadMe.md](ProjectReadMe.md) for day-by-day guide
 ### Baseline run
 
 ```bash
