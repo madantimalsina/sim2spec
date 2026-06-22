@@ -77,7 +77,7 @@ sim2spec run \
   --n-events 5
 ```
 
-### QA on an existing run
+#### QA on an existing run
 
 ```bash
 sim2spec qa --run-dir "$OUTBASE/day2_baseline/run"
