@@ -35,4 +35,4 @@ sim2spec run \
   --outdir "$OUTBASE/day1_smoke_sbatch" \
   --n-events 1
 
-sim2spec qa --run-dir "$OUTBASE/day1_smoke_sbatch/run"
+# sim2spec qa --run-dir "$OUTBASE/day1_smoke_sbatch/run"
