@@ -69,7 +69,7 @@ mkdir -p "$OUTBASE"
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT> --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
@@ -121,7 +121,7 @@ cat "$OUTBASE/day1_smoke/run/qa/metrics.json" | head
 
 # Day 2 — Baseline run and first output validation
 
-Day 2 establishes the first stable baseline simulation. The objective is to confirm that the pipeline works end to end, starting from the input HDF5 file and producing the expected output artifacts. After the run completes, the baseline output is checked with the QA tools so that participants can inspect packet counts, timing behavior, ADC-related summaries, and available plots. This creates the reference run that the rest of the project will build on.
+Day 2 establishes the first stable baseline simulation and turns it into an interpretable reference run. The objective is to confirm that the pipeline works end to end, starting from the input HDF5 file and producing the expected output artifacts. After the run completes, QA checks summarize packet counts, timing behavior, ADC-related quantities, and basic output plots. The validation plotting helper then reads `output.h5` directly and saves a small set of plots that connect those QA metrics to the physical interpretation of charge timing, event activity, and light-waveform behavior before moving on to parameter sweeps.
 
 ```bash
 # Day 2 environment block and baseline run
@@ -147,7 +147,7 @@ source "$venv_name/bin/activate"
 
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:30:00 -A <YOUR_ACCOUNT> --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
@@ -207,6 +207,22 @@ PY
 find "$OUTBASE/day2_baseline/run/qa" -maxdepth 1 -type f
 ```
 
+### Baseline validation plots
+
+Use the plotting helper to save the Day 2 validation plots.
+
+```bash
+# Save validation plots with the Day 2 baseline
+export OUTPLOTS="$OUTBASE/day2_baseline/run/validation_plots"
+mkdir -p "$OUTPLOTS"
+```
+
+```bash
+python plot_validation.py \
+  "$OUTBASE/day2_baseline/run/output.h5" \
+  --outdir "$OUTPLOTS"
+```
+
 ### What to compare and analyze
 
 - Does `output.h5` exist?
@@ -214,6 +230,9 @@ find "$OUTBASE/day2_baseline/run/qa" -maxdepth 1 -type f
 - Are ADC statistics present?
 - Are timestamp ranges present?
 - Are QA plots created?
+- **Charge vs. Time** — packets cluster at discrete timestamps (~0, 2, 4, 6, 8 × 10⁷ ticks) corresponding to individual neutrino events, with charge values mostly between 25–100 ADC and one outlier near 255 ADC
+- **Hits per Event** — event activity is highly uneven; event 1 dominates with ~3600 segments while events 0, 3, and 4 are much smaller, reflecting varying complexity of neutrino interactions
+- **Single Light Waveform** — noise-like fluctuations centered around 0 ADC (±20–30 counts) with one clear photon signal spike near sample 850 reaching ~52 ADC above the noise floor
 
 ### What to show on Day 2
 
@@ -221,139 +240,26 @@ find "$OUTBASE/day2_baseline/run/qa" -maxdepth 1 -type f
 - `manifest.json`
 - `metrics.json`
 - QA PNG files
+- `plot_charge_vs_time.png` — charge deposits clustered by event time
+- `plot_hits_per_event.png` — segment count per event showing interaction complexity
+- `plot_single_waveform.png` — light signal with noise floor and photon spike visible
 
 ### Achieved by end of Day 2
 
 - baseline run is successful
 - QA is generating metrics and plots
 - a stable reference output exists
-
-# Day 3 — From Simulation Output to Physical Interpretation
-
-Day 3 is about turning the baseline output into something interpretable through visualization. This means reading the output file directly, producing validation plots, and interpreting what the charge deposits, hit distributions, and light waveforms are telling you about the simulation. By the end of the day, the baseline is a well-understood reference for later comparison.
-
-```bash
-# Re-run QA if needed (Day 2)
-export WORKDIR=$PSCRATCH/HPC_intro/sim2spec
-export OUTBASE=$WORKDIR/runs
-
-cd $WORKDIR
-pwd
-```
-
-```bash
-# Validate the Python environment and the main dependencies
-source setup.sh
-source "$venv_name/bin/activate"
-```
-
-```bash
-# Run QA on the baseline (from day 2 to see the output.h5 file exists)
-sim2spec qa --run-dir "$OUTBASE/day2_baseline/run"
-```
-
-```bash
-# Save plots into day3 (new folder)
-export OUTPLOTS="$OUTBASE/day3_baseline/run"
-mkdir -p "$OUTPLOTS"
-```
-
-#### You can produce the plot directly
-```bash
-python plot_validation.py \
-  "$OUTBASE/day2_baseline/run/output.h5" \
-  --outdir "$OUTBASE/day3_baseline/run"
-```
-#### Alternatively: You can also produce the plots step-by-step
-```bash
-
-# Plot 1 — Charge vs. time
-python - <<'PY'
-import h5py, numpy as np, matplotlib, os
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-path    = os.path.join(os.environ["OUTBASE"], "day2_baseline", "run", "output.h5")
-out_dir = os.environ["OUTPLOTS"]
-
-with h5py.File(path, "r") as f:
-    p = f["packets"][:]
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.scatter(p["timestamp"].astype(float), p["dataword"].astype(float), s=2, alpha=0.4, color="steelblue")
-    ax.set_xlabel("Timestamp [ticks]"); ax.set_ylabel("Charge [ADC counts]")
-    ax.set_title("Charge vs. Time"); fig.tight_layout()
-    fig.savefig(f"{out_dir}/plot_charge_vs_time.png", dpi=150)
-print("Saved: plot_charge_vs_time.png")
-PY
-```
-
-```bash
-# Plot 2 — Hits per event
-python - <<'PY'
-import h5py, numpy as np, matplotlib, os
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-path    = os.path.join(os.environ["OUTBASE"], "day2_baseline", "run", "output.h5")
-out_dir = os.environ["OUTPLOTS"]
-
-with h5py.File(path, "r") as f:
-    seg = f["segments"][:]
-    u, cnt = np.unique(seg["event_id"], return_counts=True)
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.bar(u, cnt, width=0.6, color="darkorange", alpha=0.85)
-    ax.set_xlabel("Event ID"); ax.set_ylabel("Number of Segments (Hits)")
-    ax.set_title("Hits per Event"); fig.tight_layout()
-    fig.savefig(f"{out_dir}/plot_hits_per_event.png", dpi=150)
-print("Saved: plot_hits_per_event.png")
-PY
-```
-
-```bash
-# Plot 3 — Single waveform  (5 triggers, 384 channels, 1000 samples)
-python - <<'PY'
-import h5py, matplotlib, os
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-path    = os.path.join(os.environ["OUTBASE"], "day2_baseline", "run", "output.h5")
-out_dir = os.environ["OUTPLOTS"]
-
-with h5py.File(path, "r") as f:
-    wvfm = f["light_wvfm"][0, 0, :]   # trigger 0, channel 0, 1000 samples
-    fig, ax = plt.subplots(figsize=(8,4))
-    ax.plot(wvfm, color="mediumseagreen", lw=1)
-    ax.set_xlabel("Sample index"); ax.set_ylabel("ADC counts")
-    ax.set_title("Single Light Waveform (trigger 0, channel 0)"); fig.tight_layout()
-    fig.savefig(f"{out_dir}/plot_single_waveform.png", dpi=150)
-print("Saved: plot_single_waveform.png")
-PY
-```
-
-### What to compare and analyze
-
-- **Charge vs. Time** — packets cluster at discrete timestamps (~0, 2, 4, 6, 8 × 10⁷ ticks) corresponding to individual neutrino events, with charge values mostly between 25–100 ADC and one outlier near 255 ADC
-- **Hits per Event** — event activity is highly uneven; event 1 dominates with ~3600 segments while events 0, 3, and 4 are much smaller, reflecting varying complexity of neutrino interactions
-- **Single Light Waveform** — noise-like fluctuations centered around 0 ADC (±20–30 counts) with one clear photon signal spike near sample 850 reaching ~52 ADC above the noise floor
-
-### What to show on Day 3
-
-- `plot_charge_vs_time.png` — charge deposits clustered by event time
-- `plot_hits_per_event.png` — segment count per event showing interaction complexity
-- `plot_single_waveform.png` — light signal with noise floor and photon spike visible
-
-### Achieved by end of Day 3
-
-- output file read and explored directly using Python and h5py
-- three validation plots produced and physically interpreted
+- `output.h5` is read directly by `plot_validation.py`
+- baseline validation plots are saved in `$OUTBASE/day2_baseline/run/validation_plots`
+- three validation plots are produced and physically interpreted
 - charge clustering by event time identified and understood
 - hit count variation across events connected to neutrino interaction physics
 - light waveform noise floor and signal spike identified
 - baseline fully characterized and ready for parameter variation studies in later days
 
-# Day 4 — Parameter sweeps and provenance tracking
+# Day 3 — Parameter sweeps and provenance tracking
 
-Day 4 expands the workflow from a single run into a controlled set of variants. Four runs are executed using the same pipeline, each with a different random seed (`base_seed + variant_index`). Because the simulation has stochastic components, each variant will produce slightly different outputs — different packet counts, ADC distributions, and light yields. Each run is packaged with provenance information such as the seed used, environment settings, and code version. The main goal is to make result comparison systematic and reproducible.
+Day 3 expands the workflow from a single run into a controlled set of variants. Four runs are executed using the same pipeline, each with a different random seed (`base_seed + variant_index`). Because the simulation has stochastic components, each variant will produce slightly different outputs — different packet counts, ADC distributions, and light yields. Each run is packaged with provenance information such as the seed used, environment settings, and code version. The main goal is to make result comparison systematic and reproducible.
 
 > **Note:** Each variant in `configs/sweep.yaml` uses an explicitly different random seed (42, 1337, 55555, 99999), so participants will see clear differences in packet counts and ADC distributions across the four runs in `comparison.csv`.
 
@@ -379,7 +285,7 @@ source "$venv_name/bin/activate"
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:60:00 -A <YOUR_ACCOUNT>
+salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
@@ -388,7 +294,7 @@ sim2spec sweep \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_sweep" \
+  --outdir "$OUTBASE/day3_sweep" \
   --sweep "$WORKDIR/configs/sweep.yaml" \
   --n-events 3
 ```
@@ -396,23 +302,23 @@ sim2spec sweep \
 > **Alternatively**, if you prefer to submit the sweep as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
-> sbatch scripts/sbatch_day4_sweep.sh
+> sbatch scripts/sbatch_day3_sweep.sh
 > ```
 >
-> Outputs will be written to `$OUTBASE/day4_sweep_sbatch/` and job logs will appear as `day4_sweep_<jobid>.out` / `.err` in the directory where you submitted the job. Update the root path in the comparison scripts below accordingly.
+> Outputs will be written to `$OUTBASE/day3_sweep_sbatch/` and job logs will appear as `day3_sweep_<jobid>.out` / `.err` in the directory where you submitted the job. Update the root path in the comparison scripts below accordingly.
 
 ```bash
 #Inspect run directories
-ls "$OUTBASE/day4_sweep"
-find "$OUTBASE/day4_sweep" -maxdepth 2 -name manifest.json
-find "$OUTBASE/day4_sweep" -maxdepth 3 -name metrics.json
+ls "$OUTBASE/day3_sweep"
+find "$OUTBASE/day3_sweep" -maxdepth 2 -name manifest.json
+find "$OUTBASE/day3_sweep" -maxdepth 3 -name metrics.json
 ```
 
 ```bash
 # Compare variant metrics
 python - <<'PY'
 import glob, json, os
-root = os.environ["OUTBASE"] + "/day4_sweep"
+root = os.environ["OUTBASE"] + "/day3_sweep"
 rows = []
 for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
     d = json.load(open(mpath))
@@ -434,7 +340,7 @@ PY
 # Extract provenance from manifests
 python - <<'PY'
 import glob, json, os
-root = os.environ["OUTBASE"] + "/day4_sweep"
+root = os.environ["OUTBASE"] + "/day3_sweep"
 for mpath in sorted(glob.glob(root + "/*/manifest.json")):
     d = json.load(open(mpath))
     print("RUN:", mpath.split("/")[-2])
@@ -452,7 +358,7 @@ PY
 python - <<'PY'
 import glob, json, os, csv
 
-root = os.environ["OUTBASE"] + "/day4_sweep"
+root = os.environ["OUTBASE"] + "/day3_sweep"
 out  = root + "/comparison.csv"
 
 rows = []
@@ -500,21 +406,21 @@ PY
 - whether any run is unexpectedly empty
 - whether provenance is recorded consistently
 
-### What to show on Day 4
+### What to show on Day 3
 
 - directory tree with multiple runs
 - one `manifest.json`
 - `comparison.csv`
 
-### Achieved by end of Day 4
+### Achieved by end of Day 3
 
 - multiple controlled runs are executed
 - run metadata is captured
 - outputs can be compared systematically
 
-# Day 5 — Profiling and one measurable improvement
+# Day 4 — Profiling and one measurable improvement
 
-Day 5 adds observability and performance analysis to the workflow. Instead of just running the simulation, the goal is to understand how it behaves on the GPU and where time is being spent. Profiling a baseline run and one comparison run provides evidence that can support either a performance improvement or a reproducibility improvement. The goal is not deep kernel optimization, but to demonstrate that the workflow can be measured, compared, and improved in a disciplined way.
+Day 4 adds observability and performance analysis to the workflow. Instead of just running the simulation, the goal is to understand how it behaves on the GPU and where time is being spent. Profiling a baseline run and one comparison run provides evidence that can support either a performance improvement or a reproducibility improvement. The goal is not deep kernel optimization, but to demonstrate that the workflow can be measured, compared, and improved in a disciplined way.
 
 ```bash
 # Profile the baseline run with nsys
@@ -538,7 +444,7 @@ source "$venv_name/bin/activate"
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:60:00 -A <YOUR_ACCOUNT>
+salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
@@ -547,7 +453,7 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day5_profile_baseline" \
+  --outdir "$OUTBASE/day4_profile_baseline" \
   --n-events 10 \
   --profiler nsys
 ```
@@ -555,19 +461,19 @@ sim2spec run \
 > **Alternatively**, if you prefer to submit the baseline profile run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
-> sbatch scripts/sbatch_day5_profile_baseline.sh
+> sbatch scripts/sbatch_day4_profile_baseline.sh
 > ```
 >
-> Outputs will be written to `$OUTBASE/day5_profile_baseline_sbatch/run` and job logs will appear as `day5_profile_baseline_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
+> Outputs will be written to `$OUTBASE/day4_profile_baseline_sbatch/run` and job logs will appear as `day4_profile_baseline_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
 
 ```bash
 
 # Write profile summary
-sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
 
 # Inspect profiling artifacts
-ls "$OUTBASE/day5_profile_baseline/run"
-cat "$OUTBASE/day5_profile_baseline/run/profile/nsys_stats.json" | head -n 40
+ls "$OUTBASE/day4_profile_baseline/run"
+cat "$OUTBASE/day4_profile_baseline/run/profile/nsys_stats.json" | head -n 40
 ```
 
 ### Profile one comparison run
@@ -587,10 +493,10 @@ Then rerun the profiling command for the comparison case. This gives a simple ex
 > **Alternatively**, if you prefer to submit the comparison profile run as a batch job, make sure you have applied the TPB change above first, then submit with:
 >
 > ```bash
-> sbatch scripts/sbatch_day5_profile_compare.sh
+> sbatch scripts/sbatch_day4_profile_compare.sh
 > ```
 >
-> Outputs will be written to `$OUTBASE/day5_profile_compare_sbatch/run` and job logs will appear as `day5_profile_compare_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
+> Outputs will be written to `$OUTBASE/day4_profile_compare_sbatch/run` and job logs will appear as `day4_profile_compare_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
 
 ```bash
 
@@ -598,14 +504,14 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day5_profile_compare" \
+  --outdir "$OUTBASE/day4_profile_compare" \
   --n-events 10 \
   --profiler nsys
 ```
 
 ```bash
 # Write profile summary
-sim2spec profile --run-dir "$OUTBASE/day5_profile_compare/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_compare/run"
 ```
 
 ```bash
@@ -615,7 +521,7 @@ python - <<'PY'
 import os
 
 base = os.environ["OUTBASE"]
-runs = ["day5_profile_baseline", "day5_profile_compare"]
+runs = ["day4_profile_baseline", "day4_profile_compare"]
 
 print("=== Run-level comparison ===")
 for name in runs:
@@ -639,11 +545,11 @@ PY
 
 # More Compare profiling test (Optional)
 # Optional reproducibility improvement
-mkdir -p "$OUTBASE/day5_profile_baseline/run/system_info"
-mkdir -p "$OUTBASE/day5_profile_compare/run/system_info"
+mkdir -p "$OUTBASE/day4_profile_baseline/run/system_info"
+mkdir -p "$OUTBASE/day4_profile_compare/run/system_info"
 
-nvidia-smi -L | tee "$OUTBASE/day5_profile_baseline/run/system_info/gpu_list.txt"
-nvidia-smi -L | tee "$OUTBASE/day5_profile_compare/run/system_info/gpu_list.txt"
+nvidia-smi -L | tee "$OUTBASE/day4_profile_baseline/run/system_info/gpu_list.txt"
+nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
 ```
 
 ### What to compare and analyze
@@ -654,7 +560,7 @@ nvidia-smi -L | tee "$OUTBASE/day5_profile_compare/run/system_info/gpu_list.txt"
 - whether the code change or runtime setting affects performance behavior
 - whether enough runtime environment information is captured for reproducibility
 
-### What to show on Day 5
+### What to show on Day 4
 
 - `nsys_report*.nsys-rep`
 - `profile/nsys_stats.json`
@@ -663,7 +569,7 @@ nvidia-smi -L | tee "$OUTBASE/day5_profile_compare/run/system_info/gpu_list.txt"
   - `output_size_MB`
 - optional `system_info/` files
 
-### Achieved by end of Day 5
+### Achieved by end of Day 4
 
 - the workflow is profiled
 - baseline and comparison runs are measured side by side
@@ -675,12 +581,12 @@ The profiling step in this project uses summary outputs such as `nsys stats`, bu
 
 For this project, the profiling reports are expected at:
 
-- `runs/day5_profile_baseline/run/nsys_report.nsys-rep`
-- `runs/day5_profile_compare/run/nsys_report.nsys-rep`
+- `runs/day4_profile_baseline/run/nsys_report.nsys-rep`
+- `runs/day4_profile_compare/run/nsys_report.nsys-rep`
 
-# Final cross-day comparison and summary
+# Day 5 — Final cross-day comparison and summary
 
-This final section pulls together the most important outputs from the whole bootcamp: baseline results, sweep comparisons, and profiling artifacts. It is useful for preparing the final presentation or for creating a compact end-of-bootcamp artifact bundle.
+Day 5 pulls together the most important outputs from the whole bootcamp: baseline results, sweep comparisons, validation plots, and profiling artifacts. The goal is to prepare a compact final summary that explains what ran, what changed across days, and what evidence supports the final presentation.
 
 ```bash
 # Compare baseline vs sweep
@@ -698,7 +604,7 @@ base = os.environ["OUTBASE"]
 
 groups = {
     "baseline": f"{base}/day2_baseline/run/qa/metrics.json",
-    "day4_sweep": f"{base}/day4_sweep/*/qa/metrics.json",
+    "day3_sweep": f"{base}/day3_sweep/*/qa/metrics.json",
 }
 
 print("=== BASELINE ===")
@@ -707,8 +613,8 @@ if os.path.exists(p):
     d = json.load(open(p))
     print("baseline", d.get("n_packets"), d.get("adc_mean", d.get("adc_mean_guess")))
 
-print("\n=== DAY 4 SWEEP ===")
-for p in sorted(glob.glob(groups["day4_sweep"])):
+print("\n=== DAY 3 SWEEP ===")
+for p in sorted(glob.glob(groups["day3_sweep"])):
     d = json.load(open(p))
     print(p.split("/")[-3], d.get("n_packets"), d.get("adc_mean", d.get("adc_mean_guess")))
 PY
@@ -719,9 +625,10 @@ PY
 find "$OUTBASE" -maxdepth 4 \( -name "metrics.json" -o -name "manifest.json" -o -name "*.png" -o -name "nsys_stats.json" \) | sort
 ```
 
-## Suggested final presentation structure
+## Final presentation structure
 
-1. Day 1: environment and install validated  
-2. Day 2–3: baseline output and QA sanity  
-3. Day 4: controlled sweep and reproducibility  
-4. Day 5: profiling and measurable improvement
+1. Day 1: environment and install validated
+2. Day 2: baseline output, QA sanity, and validation plots
+3. Day 3: controlled sweep and reproducibility
+4. Day 4: profiling and measurable improvement
+5. Day 5: cross-day comparison and final summary

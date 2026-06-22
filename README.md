@@ -90,7 +90,7 @@ sim2spec sweep \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_sweep" \
+  --outdir "$OUTBASE/day3_sweep" \
   --sweep "$WORKDIR/configs/sweep.yaml" \
   --n-events 5
 ```
@@ -104,13 +104,13 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day5_profile_baseline" \
+  --outdir "$OUTBASE/day4_profile_baseline" \
   --n-events 10 \
   --profiler nsys
 ```
 #### Write profile summary
 ```bash
-sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
 
 ```
 ## Prefer batch jobs?
@@ -120,9 +120,9 @@ Every GPU step also has a corresponding sbatch script in `scripts/`. For example
 ```bash
 sbatch scripts/sbatch_day1_smoke.sh
 sbatch scripts/sbatch_day2_baseline.sh
-sbatch scripts/sbatch_day4_sweep.sh
-sbatch scripts/sbatch_day5_profile_baseline.sh
-sbatch scripts/sbatch_day5_profile_compare.sh
+sbatch scripts/sbatch_day3_sweep.sh
+sbatch scripts/sbatch_day4_profile_baseline.sh
+sbatch scripts/sbatch_day4_profile_compare.sh
 ```
 
 Remember to replace `<your_account>` with your NERSC project account before submitting.
@@ -333,7 +333,7 @@ Why it matters:
 Standalone script for producing validation plots directly from an output HDF5 file.
 
 ```bash
-python plot_validation.py "$OUTBASE/day2_baseline/run/output.h5" --outdir "$OUTBASE/day3_baseline/run"
+python plot_validation.py "$OUTBASE/day2_baseline/run/output.h5" --outdir "$OUTBASE/day2_baseline/run/validation_plots"
 ```
 
 Why it matters:

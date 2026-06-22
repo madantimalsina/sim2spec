@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH -J day4_sweep
+#SBATCH -J day3_sweep
 #SBATCH -A <your_account>
 #SBATCH -C gpu
 #SBATCH -q regular
@@ -7,8 +7,8 @@
 #SBATCH --gpus 1
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
-#SBATCH --output=day4_sweep_%j.out
-#SBATCH --error=day4_sweep_%j.err
+#SBATCH --output=day3_sweep_%j.out
+#SBATCH --error=day3_sweep_%j.err
 
 set -euo pipefail
 
@@ -32,6 +32,6 @@ sim2spec sweep \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_sweep_sbatch" \
+  --outdir "$OUTBASE/day3_sweep_sbatch" \
   --sweep "$WORKDIR/configs/sweep.yaml" \
   --n-events 3

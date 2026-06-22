@@ -7,26 +7,40 @@ Quick validation plots from sim2spec output.h5:
   2. Hits per event
   3. A single light waveform
 Usage:
-    python Plot_validation.py <output.h5>
+    python plot_validation.py <output.h5> [--outdir <output-directory>]
 """
 
-import sys, os
+import argparse
+import os
+import tempfile
 import h5py
 import numpy as np
 # Keep plotting non-interactive even when launched from a notebook shell that
 # exports MPLBACKEND=module://matplotlib_inline.backend_inline.
 os.environ["MPLBACKEND"] = "Agg"
+mpl_cache = os.path.join(tempfile.gettempdir(), "sim2spec-matplotlib")
+os.makedirs(mpl_cache, exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", mpl_cache)
+os.environ.setdefault("XDG_CACHE_HOME", mpl_cache)
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # ── input ──────────────────────────────────────────────────────────────────
-if len(sys.argv) < 2:
-    print("Usage: python Plot_validation.py <output.h5>")
-    sys.exit(1)
+parser = argparse.ArgumentParser(
+    description="Create validation plots from a sim2spec output HDF5 file."
+)
+parser.add_argument("output_h5", help="Path to output.h5")
+parser.add_argument(
+    "--outdir",
+    default=None,
+    help="Directory for plots. Defaults to the directory containing output.h5.",
+)
+args = parser.parse_args()
 
-h5path  = sys.argv[1]
-out_dir = os.path.dirname(os.path.abspath(h5path))
+h5path = args.output_h5
+out_dir = args.outdir or os.path.dirname(os.path.abspath(h5path))
+os.makedirs(out_dir, exist_ok=True)
 
 print(f"Reading : {h5path}")
 print(f"Saving  : {out_dir}")

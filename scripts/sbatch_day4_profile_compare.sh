@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH -J day5_profile_baseline
+#SBATCH -J day4_profile_compare
 #SBATCH -A <your_account>
 #SBATCH -C gpu
 #SBATCH -q regular
@@ -7,8 +7,8 @@
 #SBATCH --gpus 1
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
-#SBATCH --output=day5_profile_baseline_%j.out
-#SBATCH --error=day5_profile_baseline_%j.err
+#SBATCH --output=day4_profile_compare_%j.out
+#SBATCH --error=day4_profile_compare_%j.err
 
 set -euo pipefail
 
@@ -28,12 +28,15 @@ mkdir -p "$OUTBASE"
 
 python -c "import cupy as cp; n=cp.cuda.runtime.getDeviceCount(); print(f'GPU check passed: {n} device(s) available')"
 
+# NOTE: Before submitting this script, make sure you have changed TPB in
+# larnd-sim/cli/simulate_pixels.py line 1280 from TPB = 4 to TPB = 128.
+
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day5_profile_baseline_sbatch" \
+  --outdir "$OUTBASE/day4_profile_compare_sbatch" \
   --n-events 10 \
   --profiler nsys
 
-# sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline_sbatch/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_compare_sbatch/run"
