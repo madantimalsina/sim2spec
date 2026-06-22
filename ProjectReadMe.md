@@ -258,6 +258,13 @@ export OUTPLOTS="$OUTBASE/day3_baseline/run"
 mkdir -p "$OUTPLOTS"
 ```
 
+#### You can produce the plot directly
+```bash
+python plot_validation.py \
+  "$OUTBASE/day2_baseline/run/output.h5" \
+  --outdir "$OUTBASE/day3_baseline/run"
+```
+#### Alternatively: You can also produce the plots step-by-step
 ```bash
 
 # Plot 1 — Charge vs. time
@@ -322,12 +329,7 @@ with h5py.File(path, "r") as f:
 print("Saved: plot_single_waveform.png")
 PY
 ```
-#### You also produce the plot directly 
-```bash
-python plot_validation.py \
-  "$OUTBASE/day2_baseline/run/output.h5" \
-  --outdir "$OUTBASE/day3_baseline/run"
-```
+
 ### What to compare and analyze
 
 - **Charge vs. Time** — packets cluster at discrete timestamps (~0, 2, 4, 6, 8 × 10⁷ ticks) corresponding to individual neutrino events, with charge values mostly between 25–100 ADC and one outlier near 255 ADC
