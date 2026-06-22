@@ -107,8 +107,11 @@ sim2spec run \
   --outdir "$OUTBASE/day5_profile_baseline" \
   --n-events 10 \
   --profiler nsys
-
+```
+#### Write profile summary
+```bash
 sim2spec profile --run-dir "$OUTBASE/day5_profile_baseline/run"
+
 ```
 ## Prefer batch jobs?
 
