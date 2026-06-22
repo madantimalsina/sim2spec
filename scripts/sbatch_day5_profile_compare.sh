@@ -39,4 +39,4 @@ sim2spec run \
   --n-events 10 \
   --profiler nsys
 
-sim2spec profile --run-dir "$OUTBASE/day5_profile_compare_sbatch/run"
+# sim2spec profile --run-dir "$OUTBASE/day5_profile_compare_sbatch/run"
