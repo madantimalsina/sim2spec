@@ -27,7 +27,7 @@ flowchart LR
 
 A CPU is optimized for low-latency execution of many different tasks. A GPU is optimized for high-throughput execution of many similar operations at the same time. Detector simulation has many repeated calculations over tracks, charge deposits, pixels, packets, and waveforms, so it can benefit from GPU-style parallelism.
 
-![CPU vs GPU speed and throughput analogy](assets/cpu_vs_gpu.png)
+<img src="assets/cpu_vs_gpu.png" width="900">
 
 Source: CPU vs GPU teaching slide provided by the NERSC team.
 
