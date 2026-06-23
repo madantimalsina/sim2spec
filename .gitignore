@@ -4,6 +4,7 @@ __pycache__/
 runs/
 proposals/
 *.png
+!assets/*.png
 *.json
 *.csv
 *.sqlite

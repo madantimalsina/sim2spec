@@ -3,9 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 
-from config_patch import load_sweep_variants
-from prof import save_profile_summary
-from qa import qa_run
 from runner import run_larndsim
 from utils import ensure_dir, write_json
 
@@ -40,6 +37,9 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def cmd_sweep(args: argparse.Namespace) -> int:
+    from config_patch import load_sweep_variants
+    from qa import qa_run
+
     variants = load_sweep_variants(args.sweep)
     outdir = ensure_dir(args.outdir)
 
@@ -73,6 +73,8 @@ def cmd_sweep(args: argparse.Namespace) -> int:
 
 
 def cmd_qa(args: argparse.Namespace) -> int:
+    from qa import qa_run
+
     s = qa_run(args.run_dir)
     print(json.dumps({"metrics": s.metrics, "plots": s.plots}, indent=2))
     return 0
@@ -80,6 +82,8 @@ def cmd_qa(args: argparse.Namespace) -> int:
 
 
 def cmd_profile(args: argparse.Namespace) -> int:
+    from prof import save_profile_summary
+
     p = save_profile_summary(args.run_dir)
     print(f"Wrote profile summary: {p}")
     return 0
@@ -132,3 +136,7 @@ def main() -> None:
     args = parser.parse_args()
     rc = args.func(args)
     raise SystemExit(rc)
+
+
+if __name__ == "__main__":
+    main()

@@ -28,8 +28,8 @@ mkdir -p "$OUTBASE"
 
 python -c "import cupy as cp; n=cp.cuda.runtime.getDeviceCount(); print(f'GPU check passed: {n} device(s) available')"
 
-# NOTE: Before submitting this script, make sure you have changed TPB in
-# larnd-sim/cli/simulate_pixels.py line 1280 from TPB = 4 to TPB = 128.
+# NOTE: Before submitting this script, search for TPB = 4 in
+# larnd-sim/cli/simulate_pixels.py and change it to TPB = 128.
 
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \

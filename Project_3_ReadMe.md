@@ -1,0 +1,247 @@
+# Project 3: Parameter sweeps and provenance tracking
+
+Day 3 expands the workflow from a single run into a controlled set of variants. Four runs are executed using the same pipeline, each with a different random seed from `configs/sweep.yaml`. Because the simulation has stochastic components, each variant will produce slightly different outputs — different packet counts, ADC distributions, and light yields. Each run is packaged with provenance information such as the seed used, environment settings, and code version. The main goal is to make result comparison systematic and reproducible.
+
+## What you will learn
+
+- How to run a controlled multi-variant parameter sweep.
+- How random seeds affect stochastic simulation outputs.
+- How to inspect run manifests for reproducibility metadata.
+- How to compare sweep QA metrics and save a comparison CSV.
+
+> **Note:** Each variant in `configs/sweep.yaml` uses an explicitly different random seed (42, 1337, 55555, 99999), so participants will see clear differences in packet counts and ADC distributions across the four runs in `comparison.csv`.
+
+## Big picture
+
+On Day 2 you created one baseline output. On Day 3 you run the same workflow multiple times with controlled changes. This is the beginning of systematic computational science: change one thing at a time, record how the run was made, and compare outputs in a structured table.
+
+```mermaid
+flowchart LR
+    A[same input HDF5] --> B[seed 42]
+    A --> C[seed 1337]
+    A --> D[seed 55555]
+    A --> E[seed 99999]
+    B --> F[run output + QA]
+    C --> G[run output + QA]
+    D --> H[run output + QA]
+    E --> I[run output + QA]
+    F --> J[comparison.csv]
+    G --> J
+    H --> J
+    I --> J
+```
+
+## Key terms for Day 3
+
+- **Parameter sweep:** running the same workflow multiple times while changing one or more controlled settings.
+- **Variant:** one member of the sweep, such as `seed_42` or `seed_1337`.
+- **Random seed:** a number used to initialize stochastic parts of a simulation. If the code and environment are stable, recording the seed helps make a run easier to reproduce.
+- **Stochastic simulation:** a simulation with random components. Two valid runs can differ slightly because random choices affect details such as packet counts or signal distributions.
+- **Provenance:** the record of where a result came from: input file, code version, command, configuration, seed, environment variables, and output path.
+- **Manifest:** the JSON file written for each run that stores provenance information.
+- **CSV comparison table:** a simple spreadsheet-like file where each row is one run variant and each column is a metric or setting.
+
+## Why reproducibility matters in HPC
+
+HPC results often depend on many moving pieces: input files, source code, software versions, scheduler settings, environment variables, GPU hardware, random seeds, and run commands. Without provenance, it is hard to explain why two outputs differ. With provenance, you can answer practical questions:
+
+- Which seed produced this output?
+- Which input file was used?
+- Which `larnd-sim` commit was installed?
+- Was the same configuration used for every variant?
+- Did a run fail because of the simulation, the environment, or the scheduler?
+
+## Reproducibility chain
+
+Each sweep run should be traceable from input to output.
+
+```mermaid
+flowchart LR
+    A[code version] --> F[manifest.json]
+    B[input file] --> F
+    C[random seed] --> F
+    D[environment] --> F
+    E[command] --> F
+    F --> G[output.h5]
+    G --> H[qa/metrics.json]
+    H --> I[comparison.csv]
+```
+
+## What the sweep does in this project
+
+The file [`configs/sweep.yaml`](configs/sweep.yaml) defines four variants:
+
+| Variant | Seed |
+| --- | --- |
+| `seed_42` | `42` |
+| `seed_1337` | `1337` |
+| `seed_55555` | `55555` |
+| `seed_99999` | `99999` |
+
+The simulation input and configuration stay the same. The random seed changes. After each variant, `sim2spec` runs QA and writes metrics so the variants can be compared.
+
+## Resources
+
+- [NERSC Documentation](https://docs.nersc.gov/)
+- [DUNE larnd-sim documentation](https://dune.github.io/larnd-sim/larndsim.html)
+- [DUNE/larnd-sim GitHub repository](https://github.com/DUNE/larnd-sim)
+- [Python `csv` module documentation](https://docs.python.org/3/library/csv.html)
+- [Python `json` module documentation](https://docs.python.org/3/library/json.html)
+- [YAML specification](https://yaml.org/spec/)
+
+## Exercise
+
+```bash
+# Run a sweep
+export WORKDIR=$PSCRATCH/HPC_intro/sim2spec
+export LARNDSIM_DIR=$WORKDIR/larnd-sim
+export INPUT_H5=$WORKDIR/input/MiniRun5_1E19_RHC.convert2h5.0000123.EDEPSIM.hdf5
+export HDF5_USE_FILE_LOCKING=0
+export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
+export OUTBASE=$WORKDIR/runs
+
+cd $WORKDIR
+pwd
+```
+
+```bash
+# Validate the Python environment and the main dependencies
+source setup.sh
+source "$venv_name/bin/activate"
+```
+
+```bash
+# NOTE: You will need a NERSC compute allocation and access to Perlmutter.
+# For GPU work, request an interactive node or submit a batch job before running simulations.
+salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+```
+
+```bash
+# Run simulation workflow
+sim2spec sweep \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day3_sweep" \
+  --sweep "$WORKDIR/configs/sweep.yaml" \
+  --n-events 3
+```
+
+> **Alternatively**, if you prefer to submit the sweep as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
+>
+> ```bash
+> sbatch scripts/sbatch_day3_sweep.sh
+> ```
+>
+> Outputs will be written to `$OUTBASE/day3_sweep_sbatch/` and job logs will appear as `day3_sweep_<jobid>.out` / `.err` in the directory where you submitted the job. Update the root path in the comparison scripts below accordingly.
+
+```bash
+# Inspect run directories
+ls "$OUTBASE/day3_sweep"
+find "$OUTBASE/day3_sweep" -maxdepth 2 -name manifest.json
+find "$OUTBASE/day3_sweep" -maxdepth 3 -name metrics.json
+```
+
+```bash
+# Compare variant metrics
+python - <<'PY'
+import glob, json, os
+root = os.environ["OUTBASE"] + "/day3_sweep"
+rows = []
+for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
+    d = json.load(open(mpath))
+    variant = mpath.split("/")[-3]
+    rows.append({
+        "variant": variant,
+        "n_packets": d.get("n_packets"),
+        "adc_mean": d.get("adc_mean", d.get("adc_mean_guess")),
+        "adc_std": d.get("adc_std", d.get("adc_std_guess")),
+        "n_light_wvfm": d.get("n_light_wvfm"),
+    })
+
+for r in rows:
+    print(r)
+PY
+```
+
+```bash
+# Extract provenance from manifests
+python - <<'PY'
+import glob, json, os
+root = os.environ["OUTBASE"] + "/day3_sweep"
+for mpath in sorted(glob.glob(root + "/*/manifest.json")):
+    d = json.load(open(mpath))
+    print("RUN:", mpath.split("/")[-2])
+    print("  config:", d["larndsim"]["config"])
+    print("  seed:", d["sim"]["rand_seed"])
+    print("  n_events:", d["sim"]["n_events"])
+    print("  git_commit:", d["larndsim"]["git"].get("commit"))
+    print("  env:", d.get("env_applied"))
+    print("  patch:", d.get("patch"))
+PY
+```
+
+```bash
+# Save comparison CSV
+python - <<'PY'
+import glob, json, os, csv
+
+root = os.environ["OUTBASE"] + "/day3_sweep"
+out  = root + "/comparison.csv"
+
+rows = []
+for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
+    variant  = mpath.split("/")[-3]
+    run_dir  = os.path.dirname(os.path.dirname(mpath))
+    mani     = os.path.join(run_dir, "manifest.json")
+
+    d = json.load(open(mpath))
+    m = json.load(open(mani)) if os.path.exists(mani) else {}
+
+    larndsim = m.get("larndsim", {})
+    sim      = m.get("sim", {})
+    patch    = m.get("patch", {})
+
+    rows.append({
+        "variant"      : variant,
+        "config"       : larndsim.get("config"),
+        "seed"         : sim.get("rand_seed"),
+        "n_events"     : sim.get("n_events"),
+        "git_commit"   : larndsim.get("git", {}).get("commit"),
+        "patch"        : str(patch),
+        "n_packets"    : d.get("n_packets"),
+        "adc_mean"     : d.get("adc_mean",    d.get("adc_mean_guess")),
+        "adc_std"      : d.get("adc_std",     d.get("adc_std_guess")),
+        "n_light_wvfm" : d.get("n_light_wvfm"),
+    })
+
+fields = ["variant", "config", "seed", "n_events", "git_commit", "patch",
+          "n_packets", "adc_mean", "adc_std", "n_light_wvfm"]
+
+with open(out, "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=fields)
+    writer.writeheader()
+    writer.writerows(rows)
+
+print(f"Saved: {out}")
+PY
+```
+
+### What to compare and analyze
+
+- packet counts across variants
+- ADC mean and spread across variants
+- whether any run is unexpectedly empty
+- whether provenance is recorded consistently
+
+### What to show on Day 3
+
+- directory tree with multiple runs
+- one `manifest.json`
+- `comparison.csv`
+
+### Achieved by end of Day 3
+
+- multiple controlled runs are executed
+- run metadata is captured
+- outputs can be compared systematically

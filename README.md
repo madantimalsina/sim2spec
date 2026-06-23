@@ -1,4 +1,8 @@
-# sim2spec
+# DOE_HPC_Bootcamp_2026
+
+This repository contains the `sim2spec` project for the DOE HPC Bootcamp. The broader bootcamp project context is listed under [NERSC Projects for the DOE Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp).
+
+## sim2spec
 
 `sim2spec` is a lightweight workflow wrapper around [DUNE/larnd-sim](https://github.com/DUNE/larnd-sim) for running, validating, comparing, and profiling GPU-based detector simulations on Perlmutter.
 
@@ -11,10 +15,77 @@ This repository is designed for students who are new to HPC workflows and want a
 
 This project does **not** replace `larnd-sim`. Instead, it organizes the workflow around it.
 
-## Repository guides
+## How to use this project
 
-- [ProjectReadMe.md](ProjectReadMe.md) — project-facing day-by-day guide for participant  (terminal workflow)
-- [sim2spec_perlmutter_bootcamp.ipynb](sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for notebook users
+This repository is organized for HPC beginners. Start by reading the concept sections below, then open the daily project files as exercises. The goal is not to memorize every command; the goal is to understand what each command is asking the HPC system to do and how to check whether it worked.
+
+```mermaid
+flowchart LR
+    A[Your laptop or browser] --> B[NERSC login node]
+    B --> C[Slurm scheduler]
+    C --> D[Perlmutter GPU compute node]
+    D --> E[larnd-sim run]
+    E --> F[output.h5]
+    F --> G[QA metrics and plots]
+    G --> H[Sweep comparison]
+    H --> I[Profiling and final summary]
+```
+
+## Beginner concepts map
+
+### HPC system
+
+- **HPC** means high-performance computing: using shared supercomputing resources for work that is too large, slow, or specialized for a laptop.
+- **Perlmutter** is the NERSC supercomputer used by this project.
+- **Login node** is where you log in, edit files, submit jobs, and manage the project. Do not run heavy GPU simulations directly on login nodes.
+- **Compute node** is where Slurm runs your actual job. GPU simulations should run on GPU compute nodes.
+- **`$PSCRATCH`** is a high-performance scratch filesystem for active work and output files.
+
+### Scheduling
+
+- **Slurm** is the workload manager. It decides when and where your job runs.
+- **`salloc`** requests an interactive allocation. Use it when you want a live shell on a compute node.
+- **`sbatch`** submits a batch job script. Use it when you want the system to run the workflow without keeping an interactive shell open.
+- **`srun`** launches work inside an allocation or asks Slurm to run one command on compute resources.
+
+### Software environment
+
+- **Environment modules** load site-provided software such as Python.
+- **Python virtual environment** keeps this project's Python packages separate from other projects.
+- **CUDA** is NVIDIA's GPU programming platform.
+- **CuPy** provides NumPy-like arrays that run on NVIDIA GPUs.
+- **Numba** is a Python JIT compiler often used in GPU and performance-oriented Python workflows.
+
+### Simulation workflow
+
+- **`larnd-sim`** is the detector simulation package that performs the core GPU-based simulation.
+- **`sim2spec`** is the wrapper in this repository. It organizes `larnd-sim` runs, QA, sweeps, provenance, and profiling into a beginner-friendly workflow.
+- **HDF5** is the file format used for large structured simulation input and output files.
+- **`output.h5`** is the main simulation result file produced by a run.
+
+### Validation and reproducibility
+
+- **QA** means quality assurance: quick checks that the output exists and contains reasonable datasets, counts, ranges, and plots.
+- **Validation plots** help connect numbers in QA metrics to physical behavior such as charge timing, event activity, and light waveforms.
+- **Manifest** means a machine-readable record of how a run was produced.
+- **Provenance** means the information needed to understand and reproduce a result: input file, code version, seed, environment, command, and output path.
+- **Random seed** controls stochastic parts of a simulation so different variants can be compared systematically.
+
+### Performance
+
+- **Profiling** measures where time is spent.
+- **Nsight Systems** is NVIDIA's timeline profiler for CPU/GPU applications.
+- **Kernel** means a function launched on the GPU.
+- **Wall time** is the elapsed time you wait for a run to finish.
+
+## Exercise guides
+
+- [Project_1_ReadMe.md](Project_1_ReadMe.md) — Day 1: environment setup, install, and smoke test
+- [Project_2_ReadMe.md](Project_2_ReadMe.md) — Day 2: baseline run, QA, and validation plots
+- [Project_3_ReadMe.md](Project_3_ReadMe.md) — Day 3: parameter sweeps and provenance tracking
+- [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement
+- [Project_5_ReadMe.md](Project_5_ReadMe.md) — Day 5: final cross-day comparison and summary
+- [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for notebook users
 
 ## Quick start
 
@@ -55,8 +126,26 @@ python -c "import larndsim; print('larndsim ok')"
 
 If these work, your Python environment is in good shape.
 
+## Before you begin
+
+You will need a NERSC compute allocation and access to Perlmutter. For GPU work, request an interactive node or submit a batch job before running simulations.
+
+For short setup checks and baseline tests:
+
+```bash
+salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+```
+
+For longer sweep or profiling work, request more time:
+
+```bash
+salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+```
+
 ## Basic workflow examples
-Note: We will follow [ProjectReadMe.md](ProjectReadMe.md) for day-by-day guide
+
+Note: follow the matching daily guide for the block you are working on.
+
 ### Baseline run
 
 ```bash
@@ -92,7 +181,7 @@ sim2spec sweep \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day3_sweep" \
   --sweep "$WORKDIR/configs/sweep.yaml" \
-  --n-events 5
+  --n-events 3
 ```
 
 ### Profiling run
@@ -108,11 +197,13 @@ sim2spec run \
   --n-events 10 \
   --profiler nsys
 ```
+
 #### Write profile summary
+
 ```bash
 sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
-
 ```
+
 ## Prefer batch jobs?
 
 Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
@@ -351,28 +442,29 @@ Why it matters:
 
 ---
 
-### [`ProjectReadMe.md`](ProjectReadMe.md)
+### [`Project_1_ReadMe.md`](Project_1_ReadMe.md) through [`Project_5_ReadMe.md`](Project_5_ReadMe.md)
 
-This is the student-facing project guide.
+These are the focused day-by-day project guides for terminal users.
 
-What it contains:
-- a short summary of what students will learn
-- a note about NERSC compute allocation
-- a day-by-day breakdown
-- guided instructions for students to attempt on their own
+What they contain:
+- Day 1: environment setup, install, and smoke test
+- Day 2: baseline run, QA, and validation plots
+- Day 3: parameter sweeps and provenance tracking
+- Day 4: profiling and one measurable improvement
+- Day 5: final cross-day comparison and summary
 
-Why it matters:
-- this is the main file students should read first
+Why they matter:
+- each file keeps one bootcamp work block short, focused, and easier to follow during project time
 
 ---
 
-### [`sim2spec_perlmutter_bootcamp.ipynb`](sim2spec_perlmutter_bootcamp.ipynb)
+### [`sim2spec_perlmutter_bootcamp.ipynb`](JNotebook/sim2spec_perlmutter_bootcamp.ipynb)
 
-The main student-facing notebook. Mirrors `ProjectReadMe.md` day by day with executable cells, live run outputs, and `srun`-based GPU dispatch so students can run everything from inside JupyterHub.
+The main student-facing notebook. Mirrors the `Project_1_ReadMe.md` through `Project_5_ReadMe.md` day guides with executable cells and `srun`-based GPU dispatch so students can run everything from inside JupyterHub.
 
 Why it matters:
 - the recommended path for students who prefer notebooks over the terminal
-- includes real Perlmutter output examples so students know what to expect
+- keeps the notebook path shorter than the readmes while producing the same core outputs
 
 ---
 
@@ -380,14 +472,38 @@ Why it matters:
 
 If you are new to the repository, a good order is:
 
-1. [ProjectReadMe.md](ProjectReadMe.md)
-2. [README.md](README.md)
-3. [sim2spec_perlmutter_bootcamp.ipynb](sim2spec_perlmutter_bootcamp.ipynb) — if you prefer notebooks
+1. [README.md](README.md)
+2. [Project_1_ReadMe.md](Project_1_ReadMe.md) through [Project_5_ReadMe.md](Project_5_ReadMe.md)
+3. [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — if you prefer notebooks
 4. [src/cli.py](src/cli.py)
 5. [src/runner.py](src/runner.py)
 6. [src/qa.py](src/qa.py)
 7. [src/provenance.py](src/provenance.py)
 8. [configs/sweep.yaml](configs/sweep.yaml)
+
+## References
+
+Bootcamp and computing resources:
+- [NERSC Projects for the DOE Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp)
+- [NERSC Documentation](https://docs.nersc.gov/)
+
+Simulation and detector workflow resources:
+- [2x2 Demonstrator literature record](https://inspirehep.net/literature/2620145)
+- [DUNE larnd-sim documentation](https://dune.github.io/larnd-sim/larndsim.html)
+- [DUNE/larnd-sim GitHub repository](https://github.com/DUNE/larnd-sim)
+- [LBL neutrino larnd-sim example](https://github.com/lbl-neutrino/larnd-sim-example)
+- [DUNE 2x2_sim GitHub repository](https://github.com/DUNE/2x2_sim)
+- [Tutorial on running 2x2_sim, April 2024](https://github.com/DUNE/2x2_sim/wiki/Tutorial-on-running-2x2_sim-Apr2024)
+
+Tools used by this workflow:
+- [Python documentation](https://docs.python.org/3/)
+- [Numba documentation](https://numba.readthedocs.io/)
+- [CuPy documentation](https://docs.cupy.dev/)
+- [h5py documentation](https://docs.h5py.org/)
+- [Matplotlib documentation](https://matplotlib.org/stable/)
+- [Slurm workload manager documentation](https://slurm.schedmd.com/documentation.html)
+- [NVIDIA Nsight Systems](https://developer.nvidia.com/nsight-systems/get-started)
+- [NVIDIA CUDA Toolkit documentation](https://docs.nvidia.com/cuda/)
 
 ## Notes
 
