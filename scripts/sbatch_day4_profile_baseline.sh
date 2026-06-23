@@ -3,7 +3,7 @@
 #SBATCH -A <your_account>
 #SBATCH -C gpu
 #SBATCH -q regular
-#SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 #SBATCH --gpus 1
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
@@ -33,7 +33,7 @@ sim2spec run \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_profile_baseline_sbatch" \
-  --n-events 10 \
+  --n-events 5 \
   --profiler nsys
 
 sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline_sbatch/run"

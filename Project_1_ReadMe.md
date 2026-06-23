@@ -115,7 +115,7 @@ bash install.sh
 
 ```bash
 # Validate the Python environment and the main dependencies
-source setup.sh
+# source setup.sh
 source "$venv_name/bin/activate"
 
 python -c "import fire; print('fire ok')"
@@ -138,6 +138,11 @@ export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
 export OUTBASE=$WORKDIR/runs
 mkdir -p "$OUTBASE"
 ```
+
+What the two workflow environment settings do:
+
+- `HDF5_USE_FILE_LOCKING=0` tells HDF5 not to use file locking. This avoids common locking problems on shared HPC filesystems such as scratch filesystems.
+- `LARNDSIM_DISABLE_CUPY_MEMPOOL=1` tells `larnd-sim`/CuPy not to keep a reusable GPU memory pool. This can make small training runs easier to debug because GPU memory is released more predictably between runs.
 
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
@@ -163,6 +168,12 @@ sim2spec run \
 >
 > Outputs will be written to `$OUTBASE/day1_smoke_sbatch/run`, QA metrics will be generated automatically, and job logs will appear as `day1_smoke_<jobid>.out` / `.err` in the directory where you submitted the job.
 
+> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you rerun the smoke test with the same `--outdir` and see an error like `Output file ... already exists`, remove the old output file first or choose a new output directory:
+>
+> ```bash
+> rm "$OUTBASE/day1_smoke/run/output.h5"
+> ```
+
 ```bash
 # Inspect the run directory
 ls -R "$OUTBASE/day1_smoke/run"
@@ -176,6 +187,72 @@ sim2spec qa --run-dir "$OUTBASE/day1_smoke/run"
 ```bash
 # Inspect the QA metrics
 cat "$OUTBASE/day1_smoke/run/qa/metrics.json" | head
+```
+
+### Example output
+
+Your absolute path and exact numbers may differ, but a successful one-event smoke test should look similar to this:
+
+```text
+# Inspect the run directory
+<compute-node>:sim2spec > ls -R "$OUTBASE/day1_smoke/run"
+$OUTBASE/day1_smoke/run:
+command.json  manifest.json  output.h5
+```
+
+```text
+<compute-node>:sim2spec > sim2spec qa --run-dir "$OUTBASE/day1_smoke/run"
+{
+  "metrics": {
+    "file": "$OUTBASE/day1_smoke/run/output.h5",
+    "datasets": [
+      "_header",
+      "configs",
+      "light_dat",
+      "light_trig",
+      "light_wvfm",
+      "light_wvfm_mc_assn",
+      "mc_hdr",
+      "mc_packets_assn",
+      "mc_stack",
+      "messages",
+      "packets",
+      "segments",
+      "trajectories",
+      "vertices"
+    ],
+    "n_packets": 39,
+    "n_mc_packets_assn": 39,
+    "n_light_wvfm": 1,
+    "n_light_trig": 1,
+    "n_light_dat": 4,
+    "timestamp_min": 0,
+    "timestamp_max": 1611,
+    "adc_min_guess": 0.0,
+    "adc_max_guess": 63.0,
+    "adc_mean_guess": 21.025641025641026,
+    "adc_std_guess": 22.435648350265666
+  },
+  "plots": {
+    "adc_hist": "$OUTBASE/day1_smoke/run/qa/adc_hist.png",
+    "timestamp_hist": "$OUTBASE/day1_smoke/run/qa/timestamp_hist.png",
+    "light_wvfm0": "$OUTBASE/day1_smoke/run/qa/light_wvfm0.png"
+  }
+}
+```
+
+```text
+<compute-node>:sim2spec > cat "$OUTBASE/day1_smoke/run/qa/metrics.json" | head
+{
+  "adc_max_guess": 63.0,
+  "adc_mean_guess": 21.025641025641026,
+  "adc_min_guess": 0.0,
+  "adc_std_guess": 22.435648350265666,
+  "datasets": [
+    "_header",
+    "configs",
+    "light_dat",
+    "light_trig",
 ```
 
 

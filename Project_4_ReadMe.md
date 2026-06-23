@@ -104,7 +104,7 @@ source "$venv_name/bin/activate"
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
@@ -114,7 +114,7 @@ sim2spec run \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_profile_baseline" \
-  --n-events 10 \
+  --n-events 5 \
   --profiler nsys
 ```
 
@@ -146,7 +146,7 @@ TPB = 4
 Change it to:
 
 ```bash
-TPB = 128
+TPB = 64
 ```
 Then rerun the profiling command for the comparison case. This gives a simple example of how changing a GPU execution parameter can affect runtime behavior and profiling results.
 
@@ -158,6 +158,12 @@ Then rerun the profiling command for the comparison case. This gives a simple ex
 >
 > Outputs will be written to `$OUTBASE/day4_profile_compare_sbatch/run` and job logs will appear as `day4_profile_compare_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
 
+> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you rerun the comparison profile with the same `--outdir` and see an error like `Output file ... already exists`, remove the old output file first or choose a new output directory:
+>
+> ```bash
+> rm "$OUTBASE/day4_profile_compare/run/output.h5"
+> ```
+
 ```bash
 
 sim2spec run \
@@ -165,7 +171,7 @@ sim2spec run \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_profile_compare" \
-  --n-events 10 \
+  --n-events 5 \
   --profiler nsys
 ```
 
@@ -199,6 +205,22 @@ for name in runs:
     else:
         print("  missing manifest or output.h5")
 PY
+```
+
+### Example output
+
+Your exact times may differ depending on queue placement, node state, software version, and system load. A successful baseline-versus-comparison summary should look similar to this:
+
+```text
+=== Run-level comparison ===
+
+day4_profile_baseline
+  approx_wall_seconds: 110.0
+  output_size_MB: 34.16
+
+day4_profile_compare
+  approx_wall_seconds: 100.0
+  output_size_MB: 34.16
 ```
 
 ```bash

@@ -155,6 +155,12 @@ sim2spec run \
 >
 > Outputs will be written to `$OUTBASE/day2_baseline_sbatch/run`, QA metrics and QA plots will be generated automatically, and job logs will appear as `day2_baseline_<jobid>.out` / `.err` in the directory where you submitted the job.
 
+> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you rerun the baseline with the same `--outdir` and see an error like `Output file ... already exists`, remove the old output file first or choose a new output directory:
+>
+> ```bash
+> rm "$OUTBASE/day2_baseline/run/output.h5"
+> ```
+
 ```bash
 # Inspect the run directory
 ls -R "$OUTBASE/day2_baseline/run"
@@ -207,6 +213,178 @@ mkdir -p "$OUTPLOTS"
 python plot_validation.py \
   "$OUTBASE/day2_baseline/run/output.h5" \
   --outdir "$OUTPLOTS"
+```
+
+### Example output
+
+Your absolute path, node name, timestamps, and exact counts may differ, but a successful five-event baseline should look similar to this.
+
+```text
+# Inspect the run directory
+<compute-node>:sim2spec > ls -R "$OUTBASE/day2_baseline/run"
+$OUTBASE/day2_baseline/run:
+command.json  manifest.json  output.h5
+```
+
+```text
+# Run QA on the baseline
+<compute-node>:sim2spec > sim2spec qa --run-dir "$OUTBASE/day2_baseline/run"
+{
+  "metrics": {
+    "file": "$OUTBASE/day2_baseline/run/output.h5",
+    "datasets": [
+      "_header",
+      "configs",
+      "light_dat",
+      "light_trig",
+      "light_wvfm",
+      "light_wvfm_mc_assn",
+      "mc_hdr",
+      "mc_packets_assn",
+      "mc_stack",
+      "messages",
+      "packets",
+      "segments",
+      "trajectories",
+      "vertices"
+    ],
+    "n_packets": 7004,
+    "n_mc_packets_assn": 7004,
+    "n_light_wvfm": 5,
+    "n_light_trig": 5,
+    "n_light_dat": 4,
+    "timestamp_min": 0,
+    "timestamp_max": 10000000,
+    "adc_min_guess": 0.0,
+    "adc_max_guess": 255.0,
+    "adc_mean_guess": 22.472872644203314,
+    "adc_std_guess": 24.093075296481327
+  },
+  "plots": {
+    "adc_hist": "$OUTBASE/day2_baseline/run/qa/adc_hist.png",
+    "timestamp_hist": "$OUTBASE/day2_baseline/run/qa/timestamp_hist.png",
+    "light_wvfm0": "$OUTBASE/day2_baseline/run/qa/light_wvfm0.png"
+  }
+}
+```
+
+```text
+# Inspect the manifest and QA metrics
+<compute-node>:sim2spec > cat "$OUTBASE/day2_baseline/run/manifest.json"
+{
+  "env_applied": {},
+  "io": {
+    "input": "$WORKDIR/input/MiniRun5_1E19_RHC.convert2h5.0000123.EDEPSIM.hdf5",
+    "output": "$OUTBASE/day2_baseline/run/output.h5"
+  },
+  "larndsim": {
+    "config": "2x2",
+    "dir": "$WORKDIR/larnd-sim",
+    "git": {
+      "commit": "<larnd-sim commit>",
+      "describe": "<larnd-sim version>",
+      "is_git_repo": true,
+      "status": ""
+    }
+  },
+  "patch": {},
+  "runtime": {
+    "env": {
+      "CUDA_HOME": "<cuda path>",
+      "CUDA_VISIBLE_DEVICES": "<visible gpu ids>",
+      "HDF5_USE_FILE_LOCKING": "0",
+      "LARNDSIM_DISABLE_CUPY_MEMPOOL": "1"
+    },
+    "hostname": "<compute-node>",
+    "platform": "<perlmutter linux platform>",
+    "python": "3.11.7",
+    "timestamp_utc": "<run timestamp>"
+  },
+  "sim": {
+    "n_events": 5,
+    "rand_seed": 321
+  }
+}
+```
+
+```text
+<compute-node>:sim2spec > cat "$OUTBASE/day2_baseline/run/qa/metrics.json"
+{
+  "adc_max_guess": 255.0,
+  "adc_mean_guess": 22.472872644203314,
+  "adc_min_guess": 0.0,
+  "adc_std_guess": 24.093075296481327,
+  "datasets": [
+    "_header",
+    "configs",
+    "light_dat",
+    "light_trig",
+    "light_wvfm",
+    "light_wvfm_mc_assn",
+    "mc_hdr",
+    "mc_packets_assn",
+    "mc_stack",
+    "messages",
+    "packets",
+    "segments",
+    "trajectories",
+    "vertices"
+  ],
+  "file": "$OUTBASE/day2_baseline/run/output.h5",
+  "n_light_dat": 4,
+  "n_light_trig": 5,
+  "n_light_wvfm": 5,
+  "n_mc_packets_assn": 7004,
+  "n_packets": 7004,
+  "timestamp_max": 10000000,
+  "timestamp_min": 0
+}
+```
+
+```text
+# Save QA metrics from JSON to CSV for easy inspection and comparison
+<compute-node>:sim2spec > python - <<'PY'
+import json, os, csv
+path = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.json"
+out  = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.csv"
+d = json.load(open(path))
+keys = sorted(d)
+with open(out, "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=keys)
+    writer.writeheader()
+    writer.writerow(d)
+print(f"Saved to {out}")
+PY
+Saved to $OUTBASE/day2_baseline/run/qa/metrics.csv
+```
+
+```text
+# List QA files
+<compute-node>:sim2spec > find "$OUTBASE/day2_baseline/run/qa" -maxdepth 1 -type f
+$OUTBASE/day2_baseline/run/qa/metrics.json
+$OUTBASE/day2_baseline/run/qa/light_wvfm0.png
+$OUTBASE/day2_baseline/run/qa/metrics.csv
+$OUTBASE/day2_baseline/run/qa/adc_hist.png
+$OUTBASE/day2_baseline/run/qa/timestamp_hist.png
+```
+
+```text
+# Save validation plots with the Day 2 baseline
+<compute-node>:sim2spec > export OUTPLOTS="$OUTBASE/day2_baseline/run/validation_plots"
+<compute-node>:sim2spec > mkdir -p "$OUTPLOTS"
+<compute-node>:sim2spec > python plot_validation.py \
+>   "$OUTBASE/day2_baseline/run/output.h5" \
+>   --outdir "$OUTPLOTS"
+Reading : $OUTBASE/day2_baseline/run/output.h5
+Saving  : $OUTBASE/day2_baseline/run/validation_plots
+Plot 1: Charge vs. Time ...
+Saved: $OUTBASE/day2_baseline/run/validation_plots/plot_charge_vs_time.png
+Plot 2: Hits per Event ...
+Saved: $OUTBASE/day2_baseline/run/validation_plots/plot_hits_per_event.png
+Plot 3: Single Waveform ...
+Saved: $OUTBASE/day2_baseline/run/validation_plots/plot_single_waveform.png
+
+All plots done.
 ```
 
 ### What to compare and analyze

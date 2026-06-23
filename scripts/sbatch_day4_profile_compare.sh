@@ -3,7 +3,7 @@
 #SBATCH -A <your_account>
 #SBATCH -C gpu
 #SBATCH -q regular
-#SBATCH -t 01:00:00
+#SBATCH -t 00:30:00
 #SBATCH --gpus 1
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
@@ -29,14 +29,14 @@ mkdir -p "$OUTBASE"
 python -c "import cupy as cp; n=cp.cuda.runtime.getDeviceCount(); print(f'GPU check passed: {n} device(s) available')"
 
 # NOTE: Before submitting this script, search for TPB = 4 in
-# larnd-sim/cli/simulate_pixels.py and change it to TPB = 128.
+# larnd-sim/cli/simulate_pixels.py and change it to TPB = 64.
 
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_profile_compare_sbatch" \
-  --n-events 10 \
+  --n-events 5 \
   --profiler nsys
 
 sim2spec profile --run-dir "$OUTBASE/day4_profile_compare_sbatch/run"

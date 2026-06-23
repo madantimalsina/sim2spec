@@ -135,6 +135,12 @@ sim2spec sweep \
 >
 > Outputs will be written to `$OUTBASE/day3_sweep_sbatch/` and job logs will appear as `day3_sweep_<jobid>.out` / `.err` in the directory where you submitted the job. Update the root path in the comparison scripts below accordingly.
 
+> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you rerun the sweep with the same `--outdir` and see an error like `Output file ... already exists`, remove the old variant outputs first or choose a new output directory:
+>
+> ```bash
+> rm "$OUTBASE"/day3_sweep/*/output.h5
+> ```
+
 ```bash
 # Inspect run directories
 ls "$OUTBASE/day3_sweep"
@@ -225,6 +231,159 @@ with open(out, "w", newline="") as f:
 
 print(f"Saved: {out}")
 PY
+```
+
+### Example output
+
+Your absolute path, node name, commit hash, and exact metrics may differ, but a successful sweep should look similar to this.
+
+```text
+# Inspect run directories
+<compute-node>:sim2spec > ls "$OUTBASE/day3_sweep"
+000_seed_42  001_seed_1337  002_seed_55555  003_seed_99999
+```
+
+```text
+<compute-node>:sim2spec > find "$OUTBASE/day3_sweep" -maxdepth 2 -name manifest.json
+$OUTBASE/day3_sweep/000_seed_42/manifest.json
+$OUTBASE/day3_sweep/001_seed_1337/manifest.json
+$OUTBASE/day3_sweep/002_seed_55555/manifest.json
+$OUTBASE/day3_sweep/003_seed_99999/manifest.json
+```
+
+```text
+<compute-node>:sim2spec > find "$OUTBASE/day3_sweep" -maxdepth 3 -name metrics.json
+$OUTBASE/day3_sweep/000_seed_42/qa/metrics.json
+$OUTBASE/day3_sweep/001_seed_1337/qa/metrics.json
+$OUTBASE/day3_sweep/002_seed_55555/qa/metrics.json
+$OUTBASE/day3_sweep/003_seed_99999/qa/metrics.json
+```
+
+```text
+# Compare variant metrics
+<compute-node>:sim2spec > python - <<'PY'
+import glob, json, os
+root = os.environ["OUTBASE"] + "/day3_sweep"
+rows = []
+for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
+    d = json.load(open(mpath))
+    variant = mpath.split("/")[-3]
+    rows.append({
+        "variant": variant,
+        "n_packets": d.get("n_packets"),
+        "adc_mean": d.get("adc_mean", d.get("adc_mean_guess")),
+        "adc_std": d.get("adc_std", d.get("adc_std_guess")),
+        "n_light_wvfm": d.get("n_light_wvfm"),
+    })
+
+for r in rows:
+    print(r)
+PY
+{'variant': '000_seed_42', 'n_packets': 4993, 'adc_mean': 23.47987182054877, 'adc_std': 25.17762346283151, 'n_light_wvfm': 3}
+{'variant': '001_seed_1337', 'n_packets': 4986, 'adc_mean': 23.48395507420778, 'adc_std': 25.196210440038314, 'n_light_wvfm': 3}
+{'variant': '002_seed_55555', 'n_packets': 5162, 'adc_mean': 23.307826423866718, 'adc_std': 25.03137846286839, 'n_light_wvfm': 3}
+{'variant': '003_seed_99999', 'n_packets': 5033, 'adc_mean': 23.42837273991655, 'adc_std': 25.181188944302583, 'n_light_wvfm': 3}
+```
+
+```text
+# Extract provenance from manifests
+<compute-node>:sim2spec > python - <<'PY'
+import glob, json, os
+root = os.environ["OUTBASE"] + "/day3_sweep"
+for mpath in sorted(glob.glob(root + "/*/manifest.json")):
+    d = json.load(open(mpath))
+    print("RUN:", mpath.split("/")[-2])
+    print("  config:", d["larndsim"]["config"])
+    print("  seed:", d["sim"]["rand_seed"])
+    print("  n_events:", d["sim"]["n_events"])
+    print("  git_commit:", d["larndsim"]["git"].get("commit"))
+    print("  env:", d.get("env_applied"))
+    print("  patch:", d.get("patch"))
+PY
+RUN: 000_seed_42
+  config: 2x2
+  seed: 42
+  n_events: 3
+  git_commit: <larnd-sim commit>
+  env: {}
+  patch: {}
+RUN: 001_seed_1337
+  config: 2x2
+  seed: 1337
+  n_events: 3
+  git_commit: <larnd-sim commit>
+  env: {}
+  patch: {}
+RUN: 002_seed_55555
+  config: 2x2
+  seed: 55555
+  n_events: 3
+  git_commit: <larnd-sim commit>
+  env: {}
+  patch: {}
+RUN: 003_seed_99999
+  config: 2x2
+  seed: 99999
+  n_events: 3
+  git_commit: <larnd-sim commit>
+  env: {}
+  patch: {}
+```
+
+```text
+# Save comparison CSV
+<compute-node>:sim2spec > python - <<'PY'
+import glob, json, os, csv
+
+root = os.environ["OUTBASE"] + "/day3_sweep"
+out  = root + "/comparison.csv"
+
+rows = []
+for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
+    variant  = mpath.split("/")[-3]
+    run_dir  = os.path.dirname(os.path.dirname(mpath))
+    mani     = os.path.join(run_dir, "manifest.json")
+
+    d = json.load(open(mpath))
+    m = json.load(open(mani)) if os.path.exists(mani) else {}
+
+    larndsim = m.get("larndsim", {})
+    sim      = m.get("sim", {})
+    patch    = m.get("patch", {})
+
+    rows.append({
+        "variant"      : variant,
+        "config"       : larndsim.get("config"),
+        "seed"         : sim.get("rand_seed"),
+        "n_events"     : sim.get("n_events"),
+        "git_commit"   : larndsim.get("git", {}).get("commit"),
+        "patch"        : str(patch),
+        "n_packets"    : d.get("n_packets"),
+        "adc_mean"     : d.get("adc_mean",    d.get("adc_mean_guess")),
+        "adc_std"      : d.get("adc_std",     d.get("adc_std_guess")),
+        "n_light_wvfm" : d.get("n_light_wvfm"),
+    })
+
+fields = ["variant", "config", "seed", "n_events", "git_commit", "patch",
+          "n_packets", "adc_mean", "adc_std", "n_light_wvfm"]
+
+with open(out, "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=fields)
+    writer.writeheader()
+    writer.writerows(rows)
+
+print(f"Saved: {out}")
+PY
+Saved: $OUTBASE/day3_sweep/comparison.csv
+```
+
+```text
+<compute-node>:sim2spec > cat "$OUTBASE/day3_sweep/comparison.csv"
+variant,config,seed,n_events,git_commit,patch,n_packets,adc_mean,adc_std,n_light_wvfm
+000_seed_42,2x2,42,3,<larnd-sim commit>,{},4993,23.47987182054877,25.17762346283151,3
+001_seed_1337,2x2,1337,3,<larnd-sim commit>,{},4986,23.48395507420778,25.196210440038314,3
+002_seed_55555,2x2,55555,3,<larnd-sim commit>,{},5162,23.307826423866718,25.03137846286839,3
+003_seed_99999,2x2,99999,3,<larnd-sim commit>,{},5033,23.42837273991655,25.181188944302583,3
 ```
 
 ### What to compare and analyze
