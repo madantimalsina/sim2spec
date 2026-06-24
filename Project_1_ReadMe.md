@@ -81,7 +81,6 @@ These commands are enough for the Day 1 workflow.
 ## Resources
 
 - [NERSC Documentation](https://docs.nersc.gov/)
-- [Perlmutter documentation](https://docs.nersc.gov/systems/perlmutter/)
 - [Running jobs at NERSC](https://docs.nersc.gov/jobs/)
 - [Slurm workload manager documentation](https://slurm.schedmd.com/documentation.html)
 - [Python virtual environments](https://docs.python.org/3/library/venv.html)
