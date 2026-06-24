@@ -13,7 +13,7 @@ Day 3 expands the workflow from a single run into a controlled set of variants. 
 
 ## Big picture
 
-On Day 2 you created one baseline output. On Day 3 you run the same workflow multiple times with controlled changes. This is the beginning of systematic computational science: change one thing at a time, record how the run was made, and compare outputs in a structured table.
+On Day 2 you created one baseline output. Today you are going to run the same workflow multiple times with controlled changes. This is the beginning of systematic computational science: change one thing at a time, record how the run was made, and compare outputs in a structured table.
 
 ```mermaid
 flowchart LR
@@ -31,7 +31,7 @@ flowchart LR
     I --> J
 ```
 
-## Key terms for Day 3
+## Key terms
 
 - **Parameter sweep:** running the same workflow multiple times while changing one or more controlled settings.
 - **Variant:** one member of the sweep, such as `seed_42` or `seed_1337`.
@@ -393,13 +393,13 @@ variant,config,seed,n_events,git_commit,patch,n_packets,adc_mean,adc_std,n_light
 - whether any run is unexpectedly empty
 - whether provenance is recorded consistently
 
-### What to show on Day 3
+### What to show
 
 - directory tree with multiple runs
 - one `manifest.json`
 - `comparison.csv`
 
-### Achieved by end of Day 3
+### Achieved by end of Day
 
 - multiple controlled runs are executed
 - run metadata is captured
