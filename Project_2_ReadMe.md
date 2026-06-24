@@ -44,7 +44,7 @@ flowchart LR
     C --> G[validation plots]
 ```
 
-## Key terms for Day 2
+## Key terms
 
 - **Track:** the simulated path of a particle as it moves through the detector. A track shows where the particle traveled and is often broken into smaller segments for simulation.
 - **Charge deposit:** the ionization charge left behind when a particle passes through the detector material. These deposits are the starting point for simulating the detector’s charge response.
@@ -72,7 +72,7 @@ For the baseline output, imagine each packet as one row in a detector readout ta
 
 The charge vs time plot uses this idea directly: timestamp on one axis and charge-like ADC information on the other.
 
-## Example Day 2 plots
+## Example plots
 
 These are example outputs from the Day 2 QA and validation workflow. Your plots may differ slightly if the input, random seed, software version, or number of events changes.
 
@@ -413,7 +413,7 @@ All plots done.
 - **Hits per Event** — event activity is highly uneven; event 1 dominates with ~3600 segments while events 0, 3, and 4 are much smaller, reflecting varying complexity of neutrino interactions
 - **Single Light Waveform** — noise-like fluctuations centered around 0 ADC (±20–30 counts) with one clear photon signal spike near sample 850 reaching ~52 ADC above the noise floor
 
-### What to show on Day 2
+### What to show
 
 - baseline run directory
 - `manifest.json`
@@ -423,7 +423,7 @@ All plots done.
 - `plot_hits_per_event.png` — segment count per event showing interaction complexity
 - `plot_single_waveform.png` — light signal with noise floor and photon spike visible
 
-### Achieved by end of Day 2
+### Achieved by end of Day
 
 - baseline run is successful
 - QA is generating metrics and plots
