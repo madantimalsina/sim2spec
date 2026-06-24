@@ -51,7 +51,6 @@ flowchart LR
 - **Pixel:** a small readout element in the detector’s charge readout system. Pixels collect charge locally and help determine where the signal appeared in the detector.
 - **Packet:** a unit of simulated detector readout data, similar to a digitized electronics record. A packet usually contains information such as channel or pixel ID, ADC value, and timing.
 - **Waveform:** a time series of signal values, such as a light detector response or electronics signal sampled over time. Waveforms are useful for studying timing structure and detector response shape.
-  
 - **HDF5 file:** a file format designed for large structured datasets. In this project, both the input and simulation output are HDF5 files.
 - **Detector simulation output:** the simulated detector response after particles pass through the detector model.
 - **ADC:** analog-to-digital converter value; a digitized charge or signal amplitude.
