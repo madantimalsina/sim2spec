@@ -46,13 +46,17 @@ flowchart LR
 
 ## Key terms for Day 2
 
+- **Track:** the simulated path of a particle as it moves through the detector. A track shows where the particle traveled and is often broken into smaller segments for simulation.
+- **Charge deposit:** the ionization charge left behind when a particle passes through the detector material. These deposits are the starting point for simulating the detector’s charge response.
+- **Pixel:** a small readout element in the detector’s charge readout system. Pixels collect charge locally and help determine where the signal appeared in the detector.
+- **Packet:** a unit of simulated detector readout data, similar to a digitized electronics record. A packet usually contains information such as channel or pixel ID, ADC value, and timing.
+- **Waveform:** a time series of signal values, such as a light detector response or electronics signal sampled over time. Waveforms are useful for studying timing structure and detector response shape.
+  
 - **HDF5 file:** a file format designed for large structured datasets. In this project, both the input and simulation output are HDF5 files.
 - **Detector simulation output:** the simulated detector response after particles pass through the detector model.
-- **Packet:** a unit of simulated detector readout data, similar to a digitized electronics record.
 - **ADC:** analog-to-digital converter value; a digitized charge or signal amplitude.
 - **Timestamp:** the simulated time associated with a packet or signal.
 - **Segment:** a simulated piece of a particle trajectory or deposited energy in the detector.
-- **Waveform:** a time series of signal values, such as a light detector response over many samples.
 - **QA:** quality assurance; quick checks that outputs exist and contain reasonable counts, ranges, and plots.
 - **Validation plot:** a plot used to connect QA numbers to physical behavior, such as charge versus time or hits per event.
 - **Manifest:** a JSON record of how a run was produced, including inputs, output path, configuration, seed, environment settings, and code provenance.
