@@ -85,7 +85,7 @@ flowchart LR
 - [Project_3_ReadMe.md](Project_3_ReadMe.md) — Day 3: parameter sweeps and provenance tracking
 - [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement
 - [Project_5_ReadMe.md](Project_5_ReadMe.md) — Day 5: final cross-day comparison and summary
-- [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for notebook users
+- [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. It is meant for the exercises only. Please still read `Project_1_ReadMe.md` through `Project_5_ReadMe.md` for more HPC background and context.
 
 ## Quick start
 
