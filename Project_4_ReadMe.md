@@ -41,7 +41,7 @@ NVIDIA Nsight Compute gives more detailed kernel-level information. It is useful
 Source: example Nsight Compute summary screenshot from this project workflow.
 -->
 
-## Key terms for Day 4
+## Key terms
 
 - **Profiling:** measuring a program while it runs so you can identify where time and resources are spent.
 - **Wall time:** the real elapsed time that a user waits for a command or job to finish.
@@ -50,8 +50,8 @@ Source: example Nsight Compute summary screenshot from this project workflow.
 - **Memory transfer:** movement of data between CPU memory, GPU memory, or different GPU memory regions.
 - **GPU occupancy:** a rough measure of how much of the GPU's execution capacity is active. Higher occupancy can help, but it is not automatically better for every kernel.
 - **Nsight Systems:** an NVIDIA timeline profiler for understanding CPU/GPU scheduling and runtime behavior.
-<!-- - **Nsight Compute:** an NVIDIA kernel profiler for detailed CUDA kernel metrics. -->
 - **TPB:** threads per block, a CUDA launch setting that controls how GPU work is grouped.
+  <!-- - **Nsight Compute:** an NVIDIA kernel profiler for detailed CUDA kernel metrics. -->
 
 ## Why TPB can affect performance
 
@@ -241,7 +241,7 @@ nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
 - whether the code change or runtime setting affects performance behavior
 - whether enough runtime environment information is captured for reproducibility
 
-### What to show on Day 4
+### What to show
 
 - `nsys_report*.nsys-rep`
 - `profile/nsys_stats.json`
@@ -250,7 +250,7 @@ nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
   - `output_size_MB`
 - optional `system_info/` files
 
-### Achieved by end of Day 4
+### Achieved by end of Day
 
 - the workflow is profiled
 - baseline and comparison runs are measured side by side
