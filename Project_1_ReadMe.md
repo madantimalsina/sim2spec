@@ -93,6 +93,7 @@ These commands are enough for the Day 1 workflow.
 
 ```bash
 # Day 1 environment block
+# SKIP THIS IF YOU HAVE ALREADY GIT CLONED, INSTALLED, AND VALIDATED --> JUMP TO SMOKE TEST
 ```
 
 ```bash
