@@ -70,7 +70,7 @@ For the baseline output, imagine each packet as one row in a detector readout ta
 | `dataword` or `adc` | How large the digitized signal was. |
 | packet count | How many detector readout records were produced. |
 
-The `plot_charge_vs_time.png` validation plot uses this idea directly: timestamp on one axis and charge-like ADC information on the other.
+The charge vs time plot uses this idea directly: timestamp on one axis and charge-like ADC information on the other.
 
 ## Example Day 2 plots
 
