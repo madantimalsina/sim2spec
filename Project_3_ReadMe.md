@@ -87,7 +87,7 @@ The simulation input and configuration stay the same. The random seed changes. A
 - [DUNE/larnd-sim GitHub repository](https://github.com/DUNE/larnd-sim)
 - [Python `csv` module documentation](https://docs.python.org/3/library/csv.html)
 - [Python `json` module documentation](https://docs.python.org/3/library/json.html)
-- [YAML specification](https://yaml.org/spec/)
+- [YAML specification](https://github.com/yaml/yaml-spec/)
 
 ## Exercise
 
