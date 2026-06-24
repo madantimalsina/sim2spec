@@ -39,7 +39,7 @@ In simple terms:
 - **CuPy:** a Python array library that uses CUDA so array operations can run on the GPU.
 - **`larnd-sim`:** the detector simulation package used here; it relies on GPU acceleration for realistic workflows.
 
-## Key terms for Day 1
+## Key terms
 
 - **HPC:** high-performance computing; shared computing systems used for large scientific workloads.
 - **Perlmutter:** the NERSC supercomputer where this project runs.
@@ -257,13 +257,13 @@ command.json  manifest.json  output.h5
 ```
 
 
-### What to show on Day 1
+### What to show
 
 - `python -c "import cupy..."` returning `45`
 - `validate larnd-sim install`
 - optional smoke-test output and `qa/metrics.json`
 
-### Achieved by end of Day 1
+### Achieved by end of Day
 
 - GPU environment is working
 - CUDA and CuPy are correctly installed
