@@ -148,7 +148,7 @@ What the two workflow environment settings do:
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
 # For GPU work, request an interactive node or submit a batch job before running simulations.
-salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:10:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ```bash
