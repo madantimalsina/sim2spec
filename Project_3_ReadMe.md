@@ -17,18 +17,21 @@ On Day 2 you created one baseline output. Today you are going to run the same wo
 
 ```mermaid
 flowchart LR
-    A[same input HDF5] --> B[seed 42]
-    A --> C[seed 1337]
-    A --> D[seed 55555]
-    A --> E[seed 99999]
-    B --> F[run output + QA]
-    C --> G[run output + QA]
-    D --> H[run output + QA]
-    E --> I[run output + QA]
-    F --> J[comparison.csv]
-    G --> J
-    H --> J
-    I --> J
+    subgraph row1[" "]
+        direction LR
+        A[same input HDF5] --> B[seed 42]
+        A --> C[seed 1337]
+        A --> D[seed 55555]
+        A --> E[seed 99999]
+        B --> F[run output + QA]
+        C --> G[run output + QA]
+        D --> H[run output + QA]
+        E --> I[run output + QA]
+        F --> J[comparison.csv]
+        G --> J
+        H --> J
+        I --> J
+    end
 ```
 
 ## Key terms
