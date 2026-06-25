@@ -36,12 +36,15 @@ Day 2 is where the simulation output becomes something you can inspect. The basi
 
 ```mermaid
 flowchart LR
-    A[input HDF5] --> B[larnd-sim]
-    B --> C[output.h5]
-    C --> D[sim2spec QA]
-    D --> E[metrics.json]
-    D --> F[QA plots]
-    C --> G[validation plots]
+    subgraph row1[" "]
+        direction LR
+        A[input HDF5] --> B[larnd-sim]
+        B --> C[output.h5]
+        C --> D[sim2spec QA]
+        D --> E[metrics.json]
+        D --> F[QA plots]
+        C --> G[validation plots]
+    end
 ```
 
 ## Key terms
