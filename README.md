@@ -19,17 +19,23 @@ This project does **not** replace `larnd-sim`. Instead, it organizes the workflo
 
 This repository is organized for HPC beginners. Start by reading the concept sections below, then open the daily project files as exercises. The goal is not to memorize every command; the goal is to understand what each command is asking the HPC system to do and how to check whether it worked.
 
-```mermaid
-flowchart LR
-    A[Your laptop or browser] --> B[NERSC login node]
-    B --> C[Slurm scheduler]
-    C --> D[Perlmutter GPU compute node]
-    D --> E[larnd-sim run]
-    E --> F[output.h5]
-    F --> G[QA metrics and plots]
-    G --> H[Sweep comparison]
-    H --> I[Profiling and final summary]
-```
+flowchart TD
+    subgraph row1[" "]
+        direction LR
+        A[Your laptop or browser] --> B[NERSC login node]
+        B --> C[Slurm scheduler]
+        C --> D[Perlmutter GPU compute node]
+    end
+
+    subgraph row2[" "]
+        direction LR
+        E[larnd-sim run] --> F[output.h5]
+        F --> G[QA metrics and plots]
+        G --> H[Sweep comparison]
+        H --> I[Profiling and final summary]
+    end
+
+    row1 --> row2
 
 ## Beginner concepts map
 
