@@ -15,12 +15,15 @@ In this project you are not running a simulation on your laptop. You are using y
 
 ```mermaid
 flowchart LR
-    A[Your laptop or browser] --> B[NERSC login node]
-    B --> C[Slurm scheduler]
-    C --> D[Perlmutter GPU compute node]
-    D --> E[Project files in PSCRATCH]
-    E --> F[sim2spec smoke test]
-    F --> G[output.h5 and QA metrics]
+    subgraph row1[" "]
+        direction LR
+        A[Your laptop or browser] --> B[NERSC login node]
+        B --> C[Slurm scheduler]
+        C --> D[Perlmutter GPU compute node]
+        D --> E[Project files in PSCRATCH]
+        E --> F[sim2spec smoke test]
+        F --> G[output.h5 and QA metrics]
+    end
 ```
 
 ## CPU and GPU: why GPUs matter here
