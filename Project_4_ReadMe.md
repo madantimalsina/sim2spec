@@ -15,12 +15,15 @@ Profiling means measuring where a program spends time and resources. On Day 4, y
 
 ```mermaid
 flowchart LR
-    A[Python workflow] --> B[CPU launches GPU work]
-    B --> C[GPU kernels run]
-    C --> D[Memory activity]
-    D --> E[Nsight Systems timeline]
-    E --> F[Profile summary]
-    F --> G[Baseline vs comparison]
+    subgraph row1[" "]
+        direction LR
+        A[Python workflow] --> B[CPU launches GPU work]
+        B --> C[GPU kernels run]
+        C --> D[Memory activity]
+        D --> E[Nsight Systems timeline]
+        E --> F[Profile summary]
+        F --> G[Baseline vs comparison]
+    end
 ```
 
 ## Nsight Systems timeline view
