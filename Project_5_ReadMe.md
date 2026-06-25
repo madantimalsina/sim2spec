@@ -15,10 +15,13 @@ The final summary should tell one clear story: the baseline worked, the sweep ex
 
 ```mermaid
 flowchart LR
-    A[Day 2 baseline + validation plots] --> D[Day 5 final story]
-    B[Day 3 sweep + comparison.csv] --> D
-    C[Day 4 profile + measured change] --> D
-    D --> E[short presentation]
+    subgraph row1[" "]
+        direction LR
+        A[Day 2 baseline + validation plots] --> D[Day 5 final story]
+        B[Day 3 sweep + comparison.csv] --> D
+        C[Day 4 profile + measured change] --> D
+        D --> E[short presentation]
+    end
 ```
 
 ## What makes a good final summary
