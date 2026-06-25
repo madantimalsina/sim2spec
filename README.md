@@ -37,6 +37,8 @@ flowchart TD
     end
 
     row1 --> row2
+```
+
 
 ## Beginner concepts map
 
