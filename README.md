@@ -19,6 +19,7 @@ This project does **not** replace `larnd-sim`. Instead, it organizes the workflo
 
 This repository is organized for HPC beginners. Start by reading the concept sections below, then open the daily project files as exercises. The goal is not to memorize every command; the goal is to understand what each command is asking the HPC system to do and how to check whether it worked.
 
+```mermaid
 flowchart TD
     subgraph row1[" "]
         direction LR
