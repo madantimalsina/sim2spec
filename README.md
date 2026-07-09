@@ -1,6 +1,6 @@
 # DOE_HPC_Bootcamp_2026
 
-This repository contains the `sim2spec` project for the DOE HPC Bootcamp. The broader bootcamp project context is listed under [NERSC Projects for the DOE Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp).
+This repository contains the `sim2spec` project, developed as part of the DOE HPC Bootcamp at Argonne National Laboratory, from August 9-14 in St. Charles, IL. For broader context on the bootcamp, see the [Argonne Introduction to HPC Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp) page.
 
 ## sim2spec
 
@@ -92,9 +92,10 @@ flowchart TD
 - [Project_1_ReadMe.md](Project_1_ReadMe.md) — Day 1: environment setup, install, and smoke test
 - [Project_2_ReadMe.md](Project_2_ReadMe.md) — Day 2: baseline run, QA, and validation plots
 - [Project_3_ReadMe.md](Project_3_ReadMe.md) — Day 3: parameter sweeps and provenance tracking
-- [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement
+- [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement (Extended — don't worry if you didn't get there)
 - [Project_5_ReadMe.md](Project_5_ReadMe.md) — Day 5: final cross-day comparison and summary
-- [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. It is meant for the exercises only. Please still read daily `Project_N_ReadMe.md` for more HPC background and context.
+- [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. On Perlmutter, use the available Python environment and select `NERSC Python` as the notebook kernel. It is meant for the exercises only. Please still read daily `Project_N_ReadMe.md` for more HPC background and context.
+- Extended or optional: the `scripts/` folder includes batch scripts for NERSC users who want to submit jobs directly with `sbatch`.
 
 ## Quick start
 
@@ -145,10 +146,10 @@ For short setup checks and baseline tests:
 salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
-For longer sweep or profiling work, request more time:
+For example:
 
 ```bash
-salloc -C gpu -q interactive -t 00:60:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:60:00 -A m4833 --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ## Basic workflow examples
@@ -213,7 +214,9 @@ sim2spec run \
 sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
 ```
 
-## Prefer batch jobs?
+## Prefer batch jobs (extended or optional)?
+
+Learning how to submit `sbatch` jobs is important for HPC users, but do not worry about this for now. You can look at this section later.
 
 Every GPU step also has a corresponding sbatch script in `scripts/`. For example:
 
@@ -518,4 +521,4 @@ Tools used by this workflow:
 
 - This wrapper does not replace `larnd-sim`; it organizes and validates runs around it.
 - The project is designed for Perlmutter-style Python 3.11 + venv usage.
-- For Jupyter, it is best to register the venv as a notebook kernel so the interpreter matches the terminal environment.
+- For Jupyter on Perlmutter, we will use the available Python environment and corresponding Jupyter kernel. Select `NERSC Python` as the notebook kernel.

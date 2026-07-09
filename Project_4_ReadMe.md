@@ -1,5 +1,7 @@
 # Project 4: Profiling and one measurable improvement
 
+> **Note:** If you did not get through Project 3 (Day 3), focus there first. Project 4: Profiling and one measurable improvement is extended or optional, so do not worry if you do not finish this section. You can try it later and reach out to us if you have any problem.
+
 Day 4 adds observability and performance analysis to the workflow. Instead of just running the simulation, the goal is to understand how it behaves on the GPU and where time is being spent. Profiling a baseline run and one comparison run provides evidence that can support either a performance improvement or a reproducibility improvement. The goal is not deep kernel optimization, but to demonstrate that the workflow can be measured, compared, and improved in a disciplined way.
 
 ## What you will learn
@@ -121,7 +123,9 @@ sim2spec run \
   --profiler nsys
 ```
 
-> **Alternatively**, if you prefer to submit the baseline profile run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
+> **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 4 (Day 4) section in the Jupyter notebook.
+>
+> **Extended/optional:** If you prefer to submit the baseline profile run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
 > sbatch scripts/sbatch_day4_profile_baseline.sh
@@ -153,7 +157,9 @@ TPB = 64
 ```
 Then rerun the profiling command for the comparison case. This gives a simple example of how changing a GPU execution parameter can affect runtime behavior and profiling results.
 
-> **Alternatively**, if you prefer to submit the comparison profile run as a batch job, make sure you have applied the TPB change above first, then submit with:
+> **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 4 (Day 4) section in the Jupyter notebook.
+>
+> **Extended/optional:** If you prefer to submit the comparison profile run as a batch job, make sure you have applied the TPB change above first, then submit with:
 >
 > ```bash
 > sbatch scripts/sbatch_day4_profile_compare.sh

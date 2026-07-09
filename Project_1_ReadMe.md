@@ -30,6 +30,8 @@ flowchart LR
 
 A CPU is optimized for low-latency execution of many different tasks. A GPU is optimized for high-throughput execution of many similar operations at the same time. Detector simulation has many repeated calculations over tracks, charge deposits, pixels, packets, and waveforms, so it can benefit from GPU-style parallelism.
 
+#### NERSC Perlmutter: CPUs VS GPUs
+
 <img src="assets/cpu_vs_gpu.png" width="900">
 
 Source: CPU vs GPU teaching slide provided by the NERSC team.
@@ -163,7 +165,9 @@ sim2spec run \
   --n-events 1
 ```
 
-> **Alternatively**, if you prefer to submit the smoke test as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
+> **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 1 (Day 1) section in the Jupyter notebook.
+>
+> **Extended/optional:** If you prefer to submit the smoke test as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
 > sbatch scripts/sbatch_day1_smoke.sh

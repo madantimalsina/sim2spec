@@ -165,7 +165,9 @@ sim2spec run \
 ```
 
 
-> **Alternatively**, if you prefer to submit the baseline run as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
+> **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 2 (Day 2) section in the Jupyter notebook.
+>
+> **Extended/optional:** If you prefer to submit the baseline run as a batch job instead of running it interactively, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
 > sbatch scripts/sbatch_day2_baseline.sh
