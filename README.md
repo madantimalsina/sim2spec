@@ -1,5 +1,7 @@
 # DOE_HPC_Bootcamp_2026
 
+Welcome to the repository for the DOE High-Performance Computing (HPC) Bootcamp 2026. This project is designed to help participants build practical HPC workflow skills, including running GPU simulations, validating outputs, tracking reproducibility, and learning the basics of performance analysis on Perlmutter.
+
 This repository contains the `sim2spec` project, developed as part of the DOE HPC Bootcamp at Argonne National Laboratory, from August 9-14 in St. Charles, IL. For broader context on the bootcamp, see the [Argonne Introduction to HPC Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp) page.
 
 ## sim2spec
