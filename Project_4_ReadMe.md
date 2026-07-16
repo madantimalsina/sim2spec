@@ -58,7 +58,7 @@ Source: example Nsight Compute summary screenshot from this project workflow.
 - **TPB:** threads per block, a CUDA launch setting that controls how GPU work is grouped.
   <!-- - **Nsight Compute:** an NVIDIA kernel profiler for detailed CUDA kernel metrics. -->
 
-## Why TPB can affect performance
+## Why Threads Per Block (TPB) can affect performance
 
 Changing `TPB` changes how work is divided into GPU thread blocks. That can affect occupancy, register use, scheduling overhead, memory access patterns, and the number of blocks launched. A larger `TPB` is not guaranteed to be faster, so the important lesson is to measure the baseline and comparison runs instead of guessing.
 
