@@ -200,18 +200,7 @@ cat "$OUTBASE/day2_baseline/run/qa/metrics.json"
 
 ```bash
 # Save QA metrics from JSON to CSV for easy inspection and comparison
-python - <<'PY'
-import json, os, csv
-path = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.json"
-out  = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.csv"
-d = json.load(open(path))
-keys = sorted(d)
-with open(out, "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=keys)
-    writer.writeheader()
-    writer.writerow(d)
-print(f"Saved to {out}")
-PY
+python scripts/save_metrics_csv.py
 ```
 
 ```bash
@@ -363,19 +352,8 @@ command.json  manifest.json  output.h5
 
 ```text
 # Save QA metrics from JSON to CSV for easy inspection and comparison
-<compute-node>:sim2spec > python - <<'PY'
-import json, os, csv
-path = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.json"
-out  = os.environ["OUTBASE"] + "/day2_baseline/run/qa/metrics.csv"
-d = json.load(open(path))
-keys = sorted(d)
-with open(out, "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=keys)
-    writer.writeheader()
-    writer.writerow(d)
-print(f"Saved to {out}")
-PY
-Saved to $OUTBASE/day2_baseline/run/qa/metrics.csv
+<compute-node>:sim2spec > python scripts/save_metrics_csv.py
+Saved: $OUTBASE/day2_baseline/run/qa/metrics.csv
 ```
 
 ```text

@@ -145,7 +145,7 @@ cat "$OUTBASE/day4_profile_baseline/run/profile/nsys_stats.json" | head -n 40
 
 ### Profile one comparison run
 
-For the comparison profiling case, participants should modify the CUDA thread-block setting in the `larnd-sim` source before running the second profile. Open the file [`larnd-sim/cli/simulate_pixels.py`](larnd-sim/cli/simulate_pixels.py) and search for the setting:
+For the comparison profiling case, participants should modify the CUDA thread-block setting in the `larnd-sim` source before running the second profile. Open the file `larnd-sim/cli/simulate_pixels.py` (available in your working directory after running `install.sh`) and search for the setting:
 
 ```bash
 TPB = 4
@@ -191,29 +191,7 @@ sim2spec profile --run-dir "$OUTBASE/day4_profile_compare/run"
 
 ```bash
 # Compare approximate wall time and output file size using file timestamps
-
-python - <<'PY'
-import os
-
-base = os.environ["OUTBASE"]
-runs = ["day4_profile_baseline", "day4_profile_compare"]
-
-print("=== Run-level comparison ===")
-for name in runs:
-    run = f"{base}/{name}/run"
-    manifest = f"{run}/manifest.json"
-    output = f"{run}/output.h5"
-
-    print(f"\n{name}")
-
-    if os.path.exists(manifest) and os.path.exists(output):
-        mt_manifest = os.path.getmtime(manifest)
-        mt_output = os.path.getmtime(output)
-        print("  approx_wall_seconds:", round(mt_output - mt_manifest, 2))
-        print("  output_size_MB:", round(os.path.getsize(output) / (1024 * 1024), 2))
-    else:
-        print("  missing manifest or output.h5")
-PY
+python scripts/compare_profile_runs.py
 ```
 
 ### Example output

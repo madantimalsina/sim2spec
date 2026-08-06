@@ -99,7 +99,7 @@ flowchart TD
 - [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement (Extended — don't worry if you didn't get there)
 - [Project_5_ReadMe.md](Project_5_ReadMe.md) — Day 5: final cross-day comparison and summary
 - [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. On Perlmutter, use the available Python environment and select `NERSC Python` as the notebook kernel. It is meant for the exercises only. Please still read daily `Project_N_ReadMe.md` for more HPC background and context.
-- Extended or optional: the `scripts/` folder includes batch scripts for NERSC users who want to submit jobs directly with `sbatch`.
+- Extended or optional: the `scripts/` folder includes batch scripts for NERSC users who want to submit jobs directly with `sbatch`, as well as Python helper scripts used in the daily exercises.
 
 ## Quick start
 
@@ -402,6 +402,25 @@ For this project, it is expected to contain:
 
 Why it matters:
 - keeping the input in a predictable place makes the notebook and shell scripts easier to follow
+
+---
+
+### [`scripts/`](scripts/)
+
+This folder contains two types of scripts:
+
+- **Batch scripts** (`sbatch_day*.sh`) — submit GPU jobs to Slurm directly with `sbatch`
+- **Python helper scripts** — called from the daily exercises to compare metrics, extract provenance, and save CSV outputs:
+  - `save_metrics_csv.py` — Day 2: save QA metrics to CSV
+  - `compare_sweep_metrics.py` — Day 3: compare packet counts and ADC stats across sweep variants
+  - `extract_sweep_provenance.py` — Day 3: print seed, config, and git commit from each manifest
+  - `save_sweep_comparison_csv.py` — Day 3: save full sweep comparison table to `comparison.csv`
+  - `compare_profile_runs.py` — Day 4: compare wall time and output file size between profile runs
+  - `compare_baseline_vs_sweep.py` — Day 5: compare baseline and sweep metrics side by side
+
+Why it matters:
+- keeps inline Python out of the README and Jupyter cells
+- makes each step runnable with a single `python scripts/<name>.py` call
 
 ---
 

@@ -155,87 +155,22 @@ find "$OUTBASE/day3_sweep" -maxdepth 3 -name metrics.json
 
 ```bash
 # Compare variant metrics
-python - <<'PY'
-import glob, json, os
-root = os.environ["OUTBASE"] + "/day3_sweep"
-rows = []
-for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
-    d = json.load(open(mpath))
-    variant = mpath.split("/")[-3]
-    rows.append({
-        "variant": variant,
-        "n_packets": d.get("n_packets"),
-        "adc_mean": d.get("adc_mean", d.get("adc_mean_guess")),
-        "adc_std": d.get("adc_std", d.get("adc_std_guess")),
-        "n_light_wvfm": d.get("n_light_wvfm"),
-    })
-
-for r in rows:
-    print(r)
-PY
+python scripts/compare_sweep_metrics.py
 ```
 
 ```bash
 # Extract provenance from manifests
-python - <<'PY'
-import glob, json, os
-root = os.environ["OUTBASE"] + "/day3_sweep"
-for mpath in sorted(glob.glob(root + "/*/manifest.json")):
-    d = json.load(open(mpath))
-    print("RUN:", mpath.split("/")[-2])
-    print("  config:", d["larndsim"]["config"])
-    print("  seed:", d["sim"]["rand_seed"])
-    print("  n_events:", d["sim"]["n_events"])
-    print("  git_commit:", d["larndsim"]["git"].get("commit"))
-    print("  env:", d.get("env_applied"))
-    print("  patch:", d.get("patch"))
-PY
+python scripts/extract_sweep_provenance.py
 ```
 
 ```bash
 # Save comparison CSV
-python - <<'PY'
-import glob, json, os, csv
+python scripts/save_sweep_comparison_csv.py
+```
 
-root = os.environ["OUTBASE"] + "/day3_sweep"
-out  = root + "/comparison.csv"
-
-rows = []
-for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
-    variant  = mpath.split("/")[-3]
-    run_dir  = os.path.dirname(os.path.dirname(mpath))
-    mani     = os.path.join(run_dir, "manifest.json")
-
-    d = json.load(open(mpath))
-    m = json.load(open(mani)) if os.path.exists(mani) else {}
-
-    larndsim = m.get("larndsim", {})
-    sim      = m.get("sim", {})
-    patch    = m.get("patch", {})
-
-    rows.append({
-        "variant"      : variant,
-        "config"       : larndsim.get("config"),
-        "seed"         : sim.get("rand_seed"),
-        "n_events"     : sim.get("n_events"),
-        "git_commit"   : larndsim.get("git", {}).get("commit"),
-        "patch"        : str(patch),
-        "n_packets"    : d.get("n_packets"),
-        "adc_mean"     : d.get("adc_mean",    d.get("adc_mean_guess")),
-        "adc_std"      : d.get("adc_std",     d.get("adc_std_guess")),
-        "n_light_wvfm" : d.get("n_light_wvfm"),
-    })
-
-fields = ["variant", "config", "seed", "n_events", "git_commit", "patch",
-          "n_packets", "adc_mean", "adc_std", "n_light_wvfm"]
-
-with open(out, "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fields)
-    writer.writeheader()
-    writer.writerows(rows)
-
-print(f"Saved: {out}")
-PY
+```bash
+# Inspect the comparison CSV
+cat "$OUTBASE/day3_sweep/comparison.csv"
 ```
 
 ### Example output
@@ -266,24 +201,7 @@ $OUTBASE/day3_sweep/003_seed_99999/qa/metrics.json
 
 ```text
 # Compare variant metrics
-<compute-node>:sim2spec > python - <<'PY'
-import glob, json, os
-root = os.environ["OUTBASE"] + "/day3_sweep"
-rows = []
-for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
-    d = json.load(open(mpath))
-    variant = mpath.split("/")[-3]
-    rows.append({
-        "variant": variant,
-        "n_packets": d.get("n_packets"),
-        "adc_mean": d.get("adc_mean", d.get("adc_mean_guess")),
-        "adc_std": d.get("adc_std", d.get("adc_std_guess")),
-        "n_light_wvfm": d.get("n_light_wvfm"),
-    })
-
-for r in rows:
-    print(r)
-PY
+<compute-node>:sim2spec > python scripts/compare_sweep_metrics.py
 {'variant': '000_seed_42', 'n_packets': 4993, 'adc_mean': 23.47987182054877, 'adc_std': 25.17762346283151, 'n_light_wvfm': 3}
 {'variant': '001_seed_1337', 'n_packets': 4986, 'adc_mean': 23.48395507420778, 'adc_std': 25.196210440038314, 'n_light_wvfm': 3}
 {'variant': '002_seed_55555', 'n_packets': 5162, 'adc_mean': 23.307826423866718, 'adc_std': 25.03137846286839, 'n_light_wvfm': 3}
@@ -292,19 +210,7 @@ PY
 
 ```text
 # Extract provenance from manifests
-<compute-node>:sim2spec > python - <<'PY'
-import glob, json, os
-root = os.environ["OUTBASE"] + "/day3_sweep"
-for mpath in sorted(glob.glob(root + "/*/manifest.json")):
-    d = json.load(open(mpath))
-    print("RUN:", mpath.split("/")[-2])
-    print("  config:", d["larndsim"]["config"])
-    print("  seed:", d["sim"]["rand_seed"])
-    print("  n_events:", d["sim"]["n_events"])
-    print("  git_commit:", d["larndsim"]["git"].get("commit"))
-    print("  env:", d.get("env_applied"))
-    print("  patch:", d.get("patch"))
-PY
+<compute-node>:sim2spec > python scripts/extract_sweep_provenance.py
 RUN: 000_seed_42
   config: 2x2
   seed: 42
@@ -337,48 +243,7 @@ RUN: 003_seed_99999
 
 ```text
 # Save comparison CSV
-<compute-node>:sim2spec > python - <<'PY'
-import glob, json, os, csv
-
-root = os.environ["OUTBASE"] + "/day3_sweep"
-out  = root + "/comparison.csv"
-
-rows = []
-for mpath in sorted(glob.glob(root + "/*/qa/metrics.json")):
-    variant  = mpath.split("/")[-3]
-    run_dir  = os.path.dirname(os.path.dirname(mpath))
-    mani     = os.path.join(run_dir, "manifest.json")
-
-    d = json.load(open(mpath))
-    m = json.load(open(mani)) if os.path.exists(mani) else {}
-
-    larndsim = m.get("larndsim", {})
-    sim      = m.get("sim", {})
-    patch    = m.get("patch", {})
-
-    rows.append({
-        "variant"      : variant,
-        "config"       : larndsim.get("config"),
-        "seed"         : sim.get("rand_seed"),
-        "n_events"     : sim.get("n_events"),
-        "git_commit"   : larndsim.get("git", {}).get("commit"),
-        "patch"        : str(patch),
-        "n_packets"    : d.get("n_packets"),
-        "adc_mean"     : d.get("adc_mean",    d.get("adc_mean_guess")),
-        "adc_std"      : d.get("adc_std",     d.get("adc_std_guess")),
-        "n_light_wvfm" : d.get("n_light_wvfm"),
-    })
-
-fields = ["variant", "config", "seed", "n_events", "git_commit", "patch",
-          "n_packets", "adc_mean", "adc_std", "n_light_wvfm"]
-
-with open(out, "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fields)
-    writer.writeheader()
-    writer.writerows(rows)
-
-print(f"Saved: {out}")
-PY
+<compute-node>:sim2spec > python scripts/save_sweep_comparison_csv.py
 Saved: $OUTBASE/day3_sweep/comparison.csv
 ```
 
