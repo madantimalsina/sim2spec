@@ -4,6 +4,8 @@ Welcome to the repository for the DOE High-Performance Computing (HPC) Bootcamp 
 
 This repository contains the `sim2spec` project, developed as part of the DOE HPC Bootcamp at Argonne National Laboratory, from August 9-14 in St. Charles, IL. For broader context on the bootcamp, see the [Argonne Introduction to HPC Bootcamp](https://www.alcf.anl.gov/events/argonne-introduction-hpc-bootcamp) page.
 
+**New to HPC or need a refresher before the bootcamp?** Check out the [Bootcamp Prep Pack](https://github.com/Wilber/Intro-HPC-2026/tree/main/Resources/Pre-Req) — a curated set of prerequisite materials covering the Linux command line, Python basics, and HPC concepts to help you get the most out of the week.
+
 ## sim2spec
 
 `sim2spec` is a lightweight workflow wrapper around [DUNE/larnd-sim](https://github.com/DUNE/larnd-sim) for running, validating, comparing, and profiling GPU-based detector simulations on Perlmutter.
