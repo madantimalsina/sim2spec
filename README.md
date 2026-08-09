@@ -153,7 +153,7 @@ salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 -
 For example:
 
 ```bash
-salloc -C gpu -q interactive -t 00:60:00 -A m4833 --gpus=1 --ntasks=1 --cpus-per-task=8
+salloc -C gpu -q interactive -t 00:60:00 -A m4388 --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
 ## Basic workflow examples
