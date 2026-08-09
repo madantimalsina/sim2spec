@@ -92,6 +92,7 @@ Git is the version control system used to track code changes, collaborate with o
 | `git commit -m "message"` | Save staged changes as a new commit with a short description. |
 | `git push` | Upload your local commits to the remote repository. |
 | `git diff` | Show line-by-line differences between your working files and the last commit. |
+| `git stash` | Temporarily save uncommitted changes so you can switch tasks with a clean working directory. Use `git stash pop` to restore them. |
 
 ## Common Slurm commands
 
