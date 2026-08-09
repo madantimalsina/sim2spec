@@ -19,9 +19,8 @@ export HDF5_USE_FILE_LOCKING=0
 export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
 export OUTBASE=$WORKDIR/runs
 
-# If submitting from $WORKDIR, you can use:
-# source "$WORKDIR/setup.sh"
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/setup.sh"
+# source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/setup.sh"
+source setup.sh
 source "$venv_name/bin/activate"
 
 mkdir -p "$OUTBASE"

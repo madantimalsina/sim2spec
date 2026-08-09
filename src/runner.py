@@ -98,6 +98,9 @@ def run_larndsim(
             str(Path(rd) / "nsys_report"),
             "--force-overwrite=true",
             "--trace=cuda,nvtx,osrt",
+            "--cuda-memory-usage=true",
+            "--python-backtrace=cuda",
+            "--python-sampling=true",
         ] + cmd
         write_json(rd / "command_profiled.json", {"cmd": cmd})
 

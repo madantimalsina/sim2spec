@@ -72,6 +72,26 @@ These commands are enough for the Day 1 workflow.
 | `export NAME=value` | Set an environment variable. |
 | `cat file` | Print a file to the terminal. |
 | `head file` | Print the first lines of a file. |
+| `echo "text"` | Print text or a variable value to the terminal. Useful for checking what a variable holds, for example `echo $WORKDIR`. |
+| `find path -name "pattern"` | Search for files matching a name pattern under a directory, for example `find runs/ -name "metrics.json"`. |
+
+## Basic git commands
+
+Git is the version control system used to track code changes, collaborate with others, and clone projects from GitHub. These commands are enough to get started with the Day 1 workflow.
+
+| Command | What it does |
+| --- | --- |
+| `git clone <url>` | Download a copy of a remote repository to your current directory. |
+| `git status` | Show which files have been changed, added, or are untracked since the last commit. |
+| `git pull` | Fetch the latest changes from the remote repository and merge them into your current branch. |
+| `git log --oneline` | Show a compact history of recent commits with one line per commit. |
+| `git branch` | List all local branches. The current branch is marked with `*`. |
+| `git checkout -b branch-name` | Create a new branch and switch to it. |
+| `git checkout branch-name` | Switch to an existing branch. |
+| `git add file` | Stage a changed file so it is included in the next commit. |
+| `git commit -m "message"` | Save staged changes as a new commit with a short description. |
+| `git push` | Upload your local commits to the remote repository. |
+| `git diff` | Show line-by-line differences between your working files and the last commit. |
 
 ## Common Slurm commands
 
