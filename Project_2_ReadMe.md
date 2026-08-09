@@ -103,6 +103,8 @@ These are example outputs from the Day 2 QA and validation workflow. Your plots 
 
 **Timestamp histogram:** shows when simulated packets occur in time. It is useful for checking whether the signal activity is concentrated in a narrow time window or spread across a broader range, and whether the timing distribution looks physically reasonable.
 
+> **Note:** The x-axis unit is raw clock ticks from the detector's internal LArPix clock, not seconds or nanoseconds. The LArPix readout clock runs at 10 MHz, so you can convert: 10,000,000 ticks ÷ 10,000,000 Hz = 1 second. In the 5-event baseline the timestamp range spans from 0 to 10,000,000 ticks, which corresponds to roughly 1 second of simulated detector time. Each cluster of packets visible in the histogram corresponds to one neutrino interaction event occurring at a distinct moment within that window.
+
 ### Charge vs. time
 
 <img src="assets/day2_plot_charge_vs_time.png" alt="Charge versus time validation plot" width="520">
