@@ -61,6 +61,8 @@ flowchart TD
 - **`sbatch`** submits a batch job script. Use it when you want the system to run the workflow without keeping an interactive shell open.
 - **`srun`** launches work inside an allocation or asks Slurm to run one command on compute resources.
 
+For a full reference of `sbatch` flags used in this project, see [scripts/sbash_flags.md](scripts/sbash_flags.md).
+
 ### Software environment
 
 - **Environment modules** load site-provided software such as Python.

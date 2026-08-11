@@ -104,6 +104,8 @@ Git is the version control system used to track code changes, collaborate with o
 | `sacct -j <JOBID> --format=JobID,JobName,NTasks,NNodes,Elapsed,TotalCPU` | Inspect accounting information for a completed or running job. |
 | `scancel <jobid>` | Cancel a job if you submitted the wrong thing. |
 
+For a full reference of `sbatch` flags used in this project, see [scripts/sbash_flags.md](scripts/sbash_flags.md).
+
 ## Resources
 
 - [NERSC Documentation](https://docs.nersc.gov/)
