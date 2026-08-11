@@ -34,8 +34,8 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_profile_compare_sbatch" \
+  --outdir "$OUTBASE/day4_profile_tpb64" \
   --n-events 5 \
   --profiler nsys
 
-sim2spec profile --run-dir "$OUTBASE/day4_profile_compare_sbatch/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_tpb64/run"

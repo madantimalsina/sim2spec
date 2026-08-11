@@ -1,7 +1,7 @@
 import os
 
 base = os.environ["OUTBASE"]
-runs = ["day4_profile_baseline", "day4_profile_compare"]
+runs = ["day3_profile_baseline", "day4_profile_tpb64"]
 
 print("=== Run-level comparison ===")
 for name in runs:

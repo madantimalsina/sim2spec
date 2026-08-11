@@ -31,8 +31,8 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day3_profile" \
+  --outdir "$OUTBASE/day3_profile_baseline" \
   --n-events 3 \
   --profiler nsys
 
-sim2spec profile --run-dir "$OUTBASE/day3_profile/run"
+sim2spec profile --run-dir "$OUTBASE/day3_profile_baseline/run"

@@ -103,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--n-events", type=int, default=None)
     pr.add_argument("--disable-cupy-mempool", action="store_true")
     pr.add_argument("--hdf5-no-lock", action="store_true", help="Set HDF5_USE_FILE_LOCKING=0")
-    pr.add_argument("--profiler", choices=["nsys"], default=None)
+    pr.add_argument("--profiler", choices=["nsys", "ncu"], default=None)
     pr.set_defaults(func=cmd_run)
 
     ps = sub.add_parser("sweep", help="Run a sweep of YAML patch variants")

@@ -278,32 +278,36 @@ variant,config,seed,n_events,git_commit,patch,n_packets,adc_mean,adc_std,n_light
 
 ---
 
-## First profiling run with Nsight Systems
+## Baseline profiling run with Nsight Systems (TPB = 4)
 
-After completing the sweep, profile one run with NVIDIA Nsight Systems to get a first look at where the simulation spends time on the GPU. This is intentionally brief — Day 4 will go deeper with a measurable code change and kernel-level analysis using Nsight Compute.
+After completing the sweep, profile one run with NVIDIA Nsight Systems using the **default simulation settings** — specifically the default value of `TPB = 4` (threads per block) that ships with `larnd-sim`. This is your baseline measurement. On Day 4 you will change TPB to 64, run the same workflow, and compare the two profiles to see whether the change has a measurable effect.
+
+### What is TPB?
+
+`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
 
 ### What profiling adds
 
-Running with `--profiler nsys` wraps the simulation in NVIDIA Nsight Systems. It records a timeline of CPU and GPU activity — when kernels launch, how long they run, and when memory is being used. The result is a `.nsys-rep` report file you can open in the Nsight Systems GUI, plus a JSON summary you can inspect on the command line.
+Running with `--profiler nsys` wraps the simulation in NVIDIA Nsight Systems. It records a timeline of CPU and GPU activity — when kernels launch, how long they run, and when memory is being used. The result is a `.nsys-rep` report file and a JSON summary you can inspect on the command line.
 
 ```bash
-# Profile one run with Nsight Systems
+# Profile the baseline run (default TPB = 4)
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day3_profile" \
-  --n-events 3 \
+  --outdir "$OUTBASE/day3_profile_baseline" \
+  --n-events 5 \
   --profiler nsys
 ```
 
 ```bash
 # Write the profile summary
-sim2spec profile --run-dir "$OUTBASE/day3_profile/run"
+sim2spec profile --run-dir "$OUTBASE/day3_profile_baseline/run"
 
 # Inspect the profiling artifacts
-ls "$OUTBASE/day3_profile/run"
-cat "$OUTBASE/day3_profile/run/profile/nsys_stats.json" | head -n 30
+ls "$OUTBASE/day3_profile_baseline/run"
+cat "$OUTBASE/day3_profile_baseline/run/profile/nsys_stats.json" | head -n 30
 ```
 
 > **Extended/optional:** If you prefer to submit the profiling run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
@@ -316,11 +320,11 @@ cat "$OUTBASE/day3_profile/run/profile/nsys_stats.json" | head -n 30
 
 - Does `nsys_report.nsys-rep` appear in the run directory?
 - Does `profile/nsys_stats.json` contain timing information?
-- How does the profiled run wall time compare to the unprofiiled sweep variants?
+- How long did the profiled run take? This is your reference wall time for Day 4.
 
 ### Nsight Systems GUI
 
-To view the full interactive timeline, install NVIDIA Nsight Systems on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. You do not need the GUI for the command-line summary, but it is the best way to explore the CPU and GPU timeline visually. Day 4 will use this view as a starting point.
+To view the full interactive timeline, install NVIDIA Nsight Systems on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. Install it today so it is ready for Day 4's comparison.
 
 [NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
 
@@ -329,6 +333,6 @@ To view the full interactive timeline, install NVIDIA Nsight Systems on your lap
 - multiple controlled runs are executed
 - run metadata is captured
 - outputs can be compared systematically
-- first profiling run is complete
-- profiling report and JSON summary are saved
+- baseline profiling run (TPB = 4) is complete
+- `.nsys-rep` report and `nsys_stats.json` are saved
 - Nsight Systems GUI is downloaded and ready for Day 4

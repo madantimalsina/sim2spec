@@ -104,6 +104,18 @@ def run_larndsim(
         ] + cmd
         write_json(rd / "command_profiled.json", {"cmd": cmd})
 
+    elif profiler == "ncu":
+        ncu_dir = ensure_dir(rd / "ncu")
+        cmd = [
+            "ncu",
+            "--kernel-id",
+            "::regex:get_adc_values|tracks_current_mc:",
+            "-o",
+            str(ncu_dir / "ncu_report"),
+            "--force-overwrite",
+        ] + cmd
+        write_json(rd / "command_profiled.json", {"cmd": cmd})
+
     proc = subprocess.run(cmd, env=env, cwd=str(rd))
     if proc.returncode != 0:
         write_json(rd / "run_failed.json", {"returncode": proc.returncode, "cmd": cmd})

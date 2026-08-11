@@ -97,7 +97,6 @@ Changing `TPB` changes how work is divided into GPU thread blocks. That can affe
 ## Exercise
 
 ```bash
-# Profile the baseline run with nsys
 export WORKDIR=$PSCRATCH/HPC_intro/sim2spec
 export LARNDSIM_DIR=$WORKDIR/larnd-sim
 export INPUT_H5=$WORKDIR/input/MiniRun5_1E19_RHC.convert2h5.0000123.EDEPSIM.hdf5
@@ -110,61 +109,39 @@ pwd
 ```
 
 ```bash
-# Validate the Python environment and the main dependencies
 source setup.sh
 source "$venv_name/bin/activate"
 ```
 
 ```bash
 # NOTE: You will need a NERSC compute allocation and access to Perlmutter.
-# For GPU work, request an interactive node or submit a batch job before running simulations.
 salloc -C gpu -q interactive -t 00:30:00 -A <your_account> --gpus=1 --ntasks=1 --cpus-per-task=8
 ```
 
-```bash
-# run simulation workflow
-sim2spec run \
-  --larndsim-dir "$LARNDSIM_DIR" \
-  --config 2x2 \
-  --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_profile_baseline" \
-  --n-events 5 \
-  --profiler nsys
-```
+### Verify the Day 3 baseline
 
-> **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 4 (Day 4) section in the Jupyter notebook.
->
-> **Extended/optional:** If you prefer to submit the baseline profile run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
->
-> ```bash
-> sbatch scripts/sbatch_day4_profile_baseline.sh
-> ```
->
-> Outputs will be written to `$OUTBASE/day4_profile_baseline_sbatch/run` and job logs will appear as `day4_profile_baseline_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
+Before making any change, confirm your Day 3 baseline profiling run (TPB = 4) is present.
 
 ```bash
-
-# Write profile summary
-sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
-
-# Inspect profiling artifacts
-ls "$OUTBASE/day4_profile_baseline/run"
-cat "$OUTBASE/day4_profile_baseline/run/profile/nsys_stats.json" | head -n 40
+ls "$OUTBASE/day3_profile_baseline/run"
+cat "$OUTBASE/day3_profile_baseline/run/profile/nsys_stats.json" | head -n 20
 ```
 
-### Profile one comparison run
+### Apply the TPB change and run the comparison
 
-For the comparison profiling case, participants should modify the CUDA thread-block setting in the `larnd-sim` source before running the second profile. Open the file `larnd-sim/cli/simulate_pixels.py` (available in your working directory after running `install.sh`) and search for the setting:
+Open `larnd-sim/cli/simulate_pixels.py` and find:
 
 ```bash
 TPB = 4
 ```
+
 Change it to:
 
 ```bash
 TPB = 64
 ```
-Then rerun the profiling command for the comparison case. This gives a simple example of how changing a GPU execution parameter can affect runtime behavior and profiling results.
+
+Then run the comparison profile with the same settings as the Day 3 baseline so the results are directly comparable.
 
 > **Alternatively:** Use [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb), the interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. Find the corresponding Project 4 (Day 4) section in the Jupyter notebook.
 >
@@ -174,32 +151,31 @@ Then rerun the profiling command for the comparison case. This gives a simple ex
 > sbatch scripts/sbatch_day4_profile_compare.sh
 > ```
 >
-> Outputs will be written to `$OUTBASE/day4_profile_compare_sbatch/run` and job logs will appear as `day4_profile_compare_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
+> Outputs will be written to `$OUTBASE/day4_profile_tpb64/run` and job logs will appear as `day4_profile_compare_<jobid>.out` / `.err` in the directory where you submitted the job. The profile summary is generated automatically at the end of the script.
 
-> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you rerun the comparison profile with the same `--outdir` and see an error like `Output file ... already exists`, remove the old output file first or choose a new output directory:
+> **Warning for reruns:** `larnd-sim` will not overwrite an existing `output.h5`. If you need to rerun, remove the old output file first:
 >
 > ```bash
-> rm "$OUTBASE/day4_profile_compare/run/output.h5"
+> rm "$OUTBASE/day4_profile_tpb64/run/output.h5"
 > ```
 
 ```bash
-
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_profile_compare" \
+  --outdir "$OUTBASE/day4_profile_tpb64" \
   --n-events 5 \
   --profiler nsys
 ```
 
 ```bash
 # Write profile summary
-sim2spec profile --run-dir "$OUTBASE/day4_profile_compare/run"
+sim2spec profile --run-dir "$OUTBASE/day4_profile_tpb64/run"
 ```
 
 ```bash
-# Compare approximate wall time and output file size using file timestamps
+# Compare Day 3 baseline (TPB = 4) vs Day 4 comparison (TPB = 64)
 python scripts/compare_profile_runs.py
 ```
 
@@ -214,29 +190,23 @@ Two kernels in `larnd-sim` are known to dominate runtime:
 - **`get_adc_values`** — converts charge deposits into ADC values for each pixel.
 - **`tracks_current_mc`** — computes the induced current from particle tracks on the pixel readout plane.
 
-Run the profiler targeting only these two kernels. Use `--n_events 1` to keep the run short — Nsight Compute slows execution significantly while collecting detailed metrics.
+Run the profiler targeting only these two kernels. Use `--n-events 1` to keep the run short — Nsight Compute slows execution significantly while collecting detailed metrics.
 
 ```bash
-export NCU_OUTDIR="$OUTBASE/day4_ncu"
-mkdir -p "$NCU_OUTDIR"
-
-ncu \
-  --kernel-name "get_adc_values|tracks_current_mc" \
-  --launch-count 1 \
-  --set full \
-  --force-overwrite \
-  -o "$NCU_OUTDIR/ncu_report" \
-  python3 "$LARNDSIM_DIR/cli/simulate_pixels.py" \
-    2x2 \
-    --input_filename "$INPUT_H5" \
-    --output_filename "$NCU_OUTDIR/output.h5" \
-    --rand_seed 321 \
-    --n_events 1
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day4_ncu" \
+  --n-events 1 \
+  --profiler ncu
 ```
+
+The report is written to `$OUTBASE/day4_ncu/run/ncu/ncu_report.ncu-rep`.
 
 ```bash
 # Print a per-kernel summary on the command line
-ncu --import "$NCU_OUTDIR/ncu_report.ncu-rep" --print-summary per-kernel
+ncu --import "$OUTBASE/day4_ncu/run/ncu/ncu_report.ncu-rep" --print-summary per-kernel
 ```
 
 ### What to look at in the Nsight Compute output
@@ -308,13 +278,13 @@ nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
 
 **Nsight Systems GUI:** install on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. Profiling reports are at:
 
-- `runs/day4_profile_baseline/run/nsys_report.nsys-rep`
-- `runs/day4_profile_compare/run/nsys_report.nsys-rep`
+- `runs/day3_profile_baseline/run/nsys_report.nsys-rep` — TPB = 4 baseline (Day 3)
+- `runs/day4_profile_tpb64/run/nsys_report.nsys-rep` — TPB = 64 comparison (Day 4)
 
 [NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
 
 **Nsight Compute GUI:** install on your laptop, download the `.ncu-rep` file from Perlmutter, and open it locally. The kernel report is at:
 
-- `runs/day4_ncu/ncu_report.ncu-rep`
+- `runs/day4_ncu/run/ncu/ncu_report.ncu-rep`
 
 [NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)
