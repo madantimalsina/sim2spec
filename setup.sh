@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 module unload python 2>/dev/null
+module load cudatoolkit/12.9
 module load python/3.11
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
