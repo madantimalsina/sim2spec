@@ -109,7 +109,7 @@ def run_larndsim(
         cmd = [
             "ncu",
             "--kernel-id",
-            "::regex:get_adc_values|tracks_current_mc|get_rack_pixel_map2:10",
+            "::regex:get_adc_values|tracks_current_mc|get_ttrack_pixel_map2:10",
             "-o",
             str(ncu_dir / "ncu_report"),
             "--force-overwrite",
