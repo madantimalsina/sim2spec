@@ -12,52 +12,23 @@ On Day 3 you ran a first profiling run with Nsight Systems and got a high-level 
 
 ## Big picture
 
-Profiling means measuring where a program spends time and resources. On Day 4, you run the same simulation workflow under NVIDIA profiling tools so you can see when the CPU is launching work, when GPU kernels are running, when memory is being used, and whether a small code change changes the measured behavior.
+On Day 3 you profiled the default simulation (TPB = 4) and got a timeline of CPU and GPU activity. Day 4 starts from that result and goes in two directions: change the TPB setting to 64, measure whether it improves performance, and then use Nsight Compute to go one level deeper into the two kernels that dominate runtime.
 
 ```mermaid
 flowchart LR
     subgraph row1[" "]
         direction LR
-        A[Python workflow] --> B[CPU launches GPU work]
-        B --> C[GPU kernels run]
-        C --> D[Memory activity]
-        D --> E[Nsight Systems timeline]
-        E --> F[Profile summary]
-        F --> G[Baseline vs comparison]
+        A[Day 3 baseline profile TPB=4] --> B[Change TPB to 64]
+        B --> C[Run comparison profile]
+        C --> D[Compare wall time]
+        D --> E[Nsight Compute on get_adc_values and tracks_current_mc]
+        E --> F[Kernel metrics and occupancy]
     end
 ```
 
-## Nsight Systems timeline view
+## What is TPB?
 
-NVIDIA Nsight Systems shows a timeline of CPU activity, GPU kernels, memory behavior, and annotated application regions. This view is useful for seeing whether the GPU is busy, whether there are long gaps, and how repeated kernels are arranged over time.
-
-<img src="assets/day4_nsight_systems_timeline.png" alt="Example NVIDIA Nsight Systems timeline view for the project workflow" width="760">
-
-Source: example Nsight Systems timeline screenshot from this project workflow.
-
-<!--
-## Nsight Compute summary view
-
-NVIDIA Nsight Compute gives more detailed kernel-level information. It is useful when you want to look beyond the timeline and ask which CUDA kernels dominate runtime, how much compute or memory throughput they use, and what launch configuration was used.
-
-<img src="assets/day4_nsight_compute_summary.png" alt="Example NVIDIA Nsight Compute kernel summary table for the project workflow" width="760">
-
-Source: example Nsight Compute summary screenshot from this project workflow.
--->
-
-## Key terms
-
-- **Profiling:** measuring a program while it runs so you can identify where time and resources are spent.
-- **Wall time:** the real elapsed time that a user waits for a command or job to finish.
-- **GPU time:** time spent executing GPU kernels or GPU-related memory operations.
-- **Kernel:** a function launched to run many small pieces of work in parallel on the GPU.
-- **Memory transfer:** movement of data between CPU memory, GPU memory, or different GPU memory regions.
-- **GPU occupancy:** a rough measure of how much of the GPU's execution capacity is active. Higher occupancy can help, but it is not automatically better for every kernel.
-- **Nsight Systems:** an NVIDIA timeline profiler for understanding CPU/GPU scheduling and runtime behavior.
-- **Nsight Compute (`ncu`):** an NVIDIA kernel profiler that gives detailed metrics for individual GPU kernels — duration, memory throughput, compute throughput, and occupancy.
-- **TPB:** threads per block, a CUDA launch setting that controls how GPU work is grouped.
-- **`get_adc_values`:** a GPU kernel in `larnd-sim` that converts raw charge deposits into ADC values for each pixel.
-- **`tracks_current_mc`:** a GPU kernel in `larnd-sim` that computes the induced current from particle tracks on the pixel readout plane.
+`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
 
 ## Why Threads Per Block (TPB) can affect performance
 
@@ -181,6 +152,33 @@ python scripts/compare_profile_runs.py
 
 ---
 
+### Example output
+
+Your exact times may differ depending on queue placement, node state, software version, and system load. A successful baseline-versus-comparison summary should look similar to this:
+
+```text
+=== Run-level comparison ===
+
+day3_profile_baseline
+  approx_wall_seconds: 110.0
+  output_size_MB: 34.16
+
+day4_profile_tpb64
+  approx_wall_seconds: 100.0
+  output_size_MB: 34.16
+```
+
+```bash
+# Optional reproducibility improvement: record GPU information
+mkdir -p "$OUTBASE/day3_profile_baseline/run/system_info"
+mkdir -p "$OUTBASE/day4_profile_tpb64/run/system_info"
+
+nvidia-smi -L | tee "$OUTBASE/day3_profile_baseline/run/system_info/gpu_list.txt"
+nvidia-smi -L | tee "$OUTBASE/day4_profile_tpb64/run/system_info/gpu_list.txt"
+```
+
+---
+
 ## Kernel profiling with Nsight Compute
 
 Nsight Systems gives you a timeline view. Nsight Compute goes one level deeper: it profiles individual GPU kernels and tells you how efficiently each one uses the GPU's compute and memory resources.
@@ -190,7 +188,7 @@ Two kernels in `larnd-sim` are known to dominate runtime:
 - **`get_adc_values`** — converts charge deposits into ADC values for each pixel.
 - **`tracks_current_mc`** — computes the induced current from particle tracks on the pixel readout plane.
 
-Run the profiler targeting only these two kernels. Use `--n-events 1` to keep the run short — Nsight Compute slows execution significantly while collecting detailed metrics.
+Run the profiler targeting only these two kernels. Nsight Compute slows execution significantly while collecting detailed metrics, so use `--n-events 3`.
 
 ```bash
 sim2spec run \
@@ -198,7 +196,7 @@ sim2spec run \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_ncu" \
-  --n-events 1 \
+  --n-events 3 \
   --profiler ncu
 ```
 
@@ -208,6 +206,12 @@ The report is written to `$OUTBASE/day4_ncu/run/ncu/ncu_report.ncu-rep`.
 # Print a per-kernel summary on the command line
 ncu --import "$OUTBASE/day4_ncu/run/ncu/ncu_report.ncu-rep" --print-summary per-kernel
 ```
+
+> **Extended/optional:** If you prefer to submit the Nsight Compute run as a batch job, make sure to replace `<your_account>` with your NERSC project account, then submit with:
+>
+> ```bash
+> sbatch scripts/sbatch_day4_ncu.sh
+> ```
 
 ### What to look at in the Nsight Compute output
 
@@ -224,38 +228,10 @@ To explore the full kernel report interactively, install Nsight Compute on your 
 
 [NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)
 
----
-
-### Example output
-
-Your exact times may differ depending on queue placement, node state, software version, and system load. A successful baseline-versus-comparison summary should look similar to this:
-
-```text
-=== Run-level comparison ===
-
-day4_profile_baseline
-  approx_wall_seconds: 110.0
-  output_size_MB: 34.16
-
-day4_profile_compare
-  approx_wall_seconds: 100.0
-  output_size_MB: 34.16
-```
-
-```bash
-
-# Optional reproducibility improvement: record GPU information
-mkdir -p "$OUTBASE/day4_profile_baseline/run/system_info"
-mkdir -p "$OUTBASE/day4_profile_compare/run/system_info"
-
-nvidia-smi -L | tee "$OUTBASE/day4_profile_baseline/run/system_info/gpu_list.txt"
-nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
-```
-
 ### What to compare and analyze
 
 - approximate baseline versus comparison runtime from `compare_profile_runs.py`
-- output file size for the baseline and comparison runs
+- output file size for the baseline (TPB = 4) and comparison (TPB = 64) runs
 - whether the TPB change affected performance behavior
 - duration and throughput of `get_adc_values` and `tracks_current_mc` from Nsight Compute
 - whether the two kernels are memory-bound or compute-bound
@@ -264,27 +240,13 @@ nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
 
 - `nsys_report*.nsys-rep` and `profile/nsys_stats.json`
 - a small comparison summary: `approx_wall_seconds` and `output_size_MB`
-- `day4_ncu/ncu_report.ncu-rep` and the per-kernel summary
+- `day4_ncu/run/ncu/ncu_report.ncu-rep` and the per-kernel summary
 - optional `system_info/` files
 
 ### Achieved by end of Day
 
-- baseline and comparison runs measured side by side
+- TPB = 4 baseline (Day 3) and TPB = 64 comparison measured side by side
 - one measurable code change (TPB) evaluated and documented
 - `get_adc_values` and `tracks_current_mc` profiled with Nsight Compute
 - kernel duration, memory throughput, and occupancy recorded
 
-### Before you go
-
-**Nsight Systems GUI:** install on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. Profiling reports are at:
-
-- `runs/day3_profile_baseline/run/nsys_report.nsys-rep` — TPB = 4 baseline (Day 3)
-- `runs/day4_profile_tpb64/run/nsys_report.nsys-rep` — TPB = 64 comparison (Day 4)
-
-[NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
-
-**Nsight Compute GUI:** install on your laptop, download the `.ncu-rep` file from Perlmutter, and open it locally. The kernel report is at:
-
-- `runs/day4_ncu/run/ncu/ncu_report.ncu-rep`
-
-[NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)

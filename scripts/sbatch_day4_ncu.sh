@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH -J day3_profile
+#SBATCH -J day4_ncu
 #SBATCH -A <your_account>
 #SBATCH -C gpu
 #SBATCH -q regular
@@ -7,8 +7,8 @@
 #SBATCH --gpus 1
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 8
-#SBATCH --output=day3_profile_%j.out
-#SBATCH --error=day3_profile_%j.err
+#SBATCH --output=day4_ncu_%j.out
+#SBATCH --error=day4_ncu_%j.err
 
 set -euo pipefail
 
@@ -31,8 +31,6 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day3_profile_baseline" \
+  --outdir "$OUTBASE/day4_ncu" \
   --n-events 3 \
-  --profiler nsys
-
-sim2spec profile --run-dir "$OUTBASE/day3_profile_baseline/run"
+  --profiler ncu

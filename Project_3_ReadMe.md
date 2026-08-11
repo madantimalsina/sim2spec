@@ -45,10 +45,6 @@ flowchart LR
 - **Provenance:** the record of where a result came from: input file, code version, command, configuration, seed, environment variables, and output path.
 - **Manifest:** the JSON file written for each run that stores provenance information.
 - **CSV comparison table:** a simple spreadsheet-like file where each row is one run variant and each column is a metric or setting.
-- **Profiling:** measuring a program while it runs to identify where time and resources are spent.
-- **Nsight Systems:** NVIDIA's timeline profiler that records CPU and GPU activity while your program runs.
-- **Wall time:** the real elapsed time from when a job starts to when it finishes.
-- **`.nsys-rep`:** the Nsight Systems report file produced by a profiling run. It can be opened in the Nsight Systems GUI on your laptop for an interactive timeline view.
 
 ## Why reproducibility matters in HPC
 
@@ -278,20 +274,16 @@ variant,config,seed,n_events,git_commit,patch,n_packets,adc_mean,adc_std,n_light
 
 ---
 
-## Baseline profiling run with Nsight Systems (TPB = 4)
+## Profiling run with Nsight Systems
 
-After completing the sweep, profile one run with NVIDIA Nsight Systems using the **default simulation settings** — specifically the default value of `TPB = 4` (threads per block) that ships with `larnd-sim`. This is your baseline measurement. On Day 4 you will change TPB to 64, run the same workflow, and compare the two profiles to see whether the change has a measurable effect.
-
-### What is TPB?
-
-`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
+After completing the sweep, profile one run with NVIDIA Nsight Systems to see where the simulation spends time on the GPU.
 
 ### What profiling adds
 
 Running with `--profiler nsys` wraps the simulation in NVIDIA Nsight Systems. It records a timeline of CPU and GPU activity — when kernels launch, how long they run, and when memory is being used. The result is a `.nsys-rep` report file and a JSON summary you can inspect on the command line.
 
 ```bash
-# Profile the baseline run (default TPB = 4)
+# Profile the run with default settings (TPB = 4)
 sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
@@ -313,7 +305,7 @@ cat "$OUTBASE/day3_profile_baseline/run/profile/nsys_stats.json" | head -n 30
 > **Extended/optional:** If you prefer to submit the profiling run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
 >
 > ```bash
-> sbatch scripts/sbatch_day3_profile.sh
+> sbatch scripts/sbatch_day3_profile_baseline.sh
 > ```
 
 ### What to look for
@@ -328,11 +320,40 @@ To view the full interactive timeline, install NVIDIA Nsight Systems on your lap
 
 [NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
 
+---
+
+## Profiling key terms
+
+- **Profiling:** measuring a program while it runs so you can identify where time and resources are spent.
+- **Wall time:** the real elapsed time that a user waits for a command or job to finish.
+- **GPU time:** time spent executing GPU kernels or GPU-related memory operations.
+- **Kernel:** a function launched to run many small pieces of work in parallel on the GPU.
+- **Memory transfer:** movement of data between CPU memory, GPU memory, or different GPU memory regions.
+- **GPU occupancy:** a rough measure of how much of the GPU's execution capacity is active. Higher occupancy can help, but it is not automatically better for every kernel.
+- **Nsight Systems:** an NVIDIA timeline profiler for understanding CPU/GPU scheduling and runtime behavior.
+- **Nsight Compute (`ncu`):** an NVIDIA kernel profiler that gives detailed metrics for individual GPU kernels — duration, memory throughput, compute throughput, and occupancy.
+- **TPB:** threads per block, a CUDA launch setting that controls how GPU work is grouped.
+- **`.nsys-rep`:** the Nsight Systems report file produced by a profiling run. It can be opened in the Nsight Systems GUI on your laptop for an interactive timeline view.
+- **`get_adc_values`:** a GPU kernel in `larnd-sim` that converts raw charge deposits into ADC values for each pixel.
+- **`tracks_current_mc`:** a GPU kernel in `larnd-sim` that computes the induced current from particle tracks on the pixel readout plane.
+
+---
+
+## Nsight Systems timeline view
+
+NVIDIA Nsight Systems shows a timeline of CPU activity, GPU kernels, memory behavior, and annotated application regions. This view is useful for seeing whether the GPU is busy, whether there are long gaps, and how repeated kernels are arranged over time.
+
+<img src="assets/day4_nsight_systems_timeline.png" alt="Example NVIDIA Nsight Systems timeline view for the project workflow" width="760">
+
+Source: example Nsight Systems timeline screenshot from this project workflow.
+
+---
+
 ### Achieved by end of Day
 
 - multiple controlled runs are executed
 - run metadata is captured
 - outputs can be compared systematically
-- baseline profiling run (TPB = 4) is complete
+- profiling run (TPB = 4) is complete
 - `.nsys-rep` report and `nsys_stats.json` are saved
 - Nsight Systems GUI is downloaded and ready for Day 4

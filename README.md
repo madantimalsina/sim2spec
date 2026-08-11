@@ -198,7 +198,7 @@ sim2spec sweep \
   --n-events 3
 ```
 
-### Profiling run
+### Profiling run (Day 3 — TPB = 4 baseline)
 
 ```bash
 export LARNDSIM_DISABLE_CUPY_MEMPOOL=1
@@ -207,15 +207,39 @@ sim2spec run \
   --larndsim-dir "$LARNDSIM_DIR" \
   --config 2x2 \
   --input "$INPUT_H5" \
-  --outdir "$OUTBASE/day4_profile_baseline" \
-  --n-events 10 \
+  --outdir "$OUTBASE/day3_profile_baseline" \
+  --n-events 5 \
   --profiler nsys
 ```
 
 #### Write profile summary
 
 ```bash
-sim2spec profile --run-dir "$OUTBASE/day4_profile_baseline/run"
+sim2spec profile --run-dir "$OUTBASE/day3_profile_baseline/run"
+```
+
+### Profiling run (Day 4 — TPB = 64 comparison)
+
+```bash
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day4_profile_tpb64" \
+  --n-events 5 \
+  --profiler nsys
+```
+
+### Kernel profiling with Nsight Compute (Day 4)
+
+```bash
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day4_ncu" \
+  --n-events 3 \
+  --profiler ncu
 ```
 
 ## Prefer batch jobs (extended or optional)?
@@ -228,8 +252,9 @@ Every GPU step also has a corresponding sbatch script in `scripts/`. For example
 sbatch scripts/sbatch_day1_smoke.sh
 sbatch scripts/sbatch_day2_baseline.sh
 sbatch scripts/sbatch_day3_sweep.sh
-sbatch scripts/sbatch_day4_profile_baseline.sh
+sbatch scripts/sbatch_day3_profile_baseline.sh
 sbatch scripts/sbatch_day4_profile_compare.sh
+sbatch scripts/sbatch_day4_ncu.sh
 ```
 
 Remember to replace `<your_account>` with your NERSC project account before submitting.
@@ -484,8 +509,8 @@ These are the focused day-by-day project guides for terminal users.
 What they contain:
 - Day 1: environment setup, install, and smoke test
 - Day 2: baseline run, QA, and validation plots
-- Day 3: parameter sweeps and provenance tracking
-- Day 4: profiling and one measurable improvement
+- Day 3: parameter sweeps, provenance tracking, and first profiling with Nsight Systems
+- Day 4: one measurable improvement (TPB) and kernel profiling with Nsight Compute
 - Day 5: final cross-day comparison and summary
 
 Why they matter:

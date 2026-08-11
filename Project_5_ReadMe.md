@@ -44,7 +44,8 @@ A good final project summary is short, evidence-based, and reproducible. It shou
 | Validation plots | Day 2 plot files | Connects QA numbers to detector-output behavior. |
 | Sweep comparison | Day 3 `comparison.csv` | Shows how controlled random seeds changed output metrics. |
 | Run manifests | Day 2 and Day 3 `manifest.json` files | Records inputs, settings, seeds, and environment details. |
-| Profiling summary | Day 4 `profile/nsys_stats.json` | Shows measured runtime behavior for baseline and comparison runs. |
+| Profiling summary | Day 3 `day3_profile_baseline/run/profile/nsys_stats.json` (TPB = 4) and Day 4 `day4_profile_tpb64/run/profile/nsys_stats.json` (TPB = 64) | Shows measured runtime behavior and the effect of the TPB change. |
+| Nsight Compute report | Day 4 `day4_ncu/run/ncu/ncu_report.ncu-rep` | Shows kernel-level metrics for `get_adc_values` and `tracks_current_mc`. |
 | Final notes | Your presentation or summary slide | Explains what changed, what stayed stable, and what you learned. |
 
 ## Suggested presentation template
@@ -52,7 +53,7 @@ A good final project summary is short, evidence-based, and reproducible. It shou
 1. **Goal:** one sentence describing the simulation workflow.
 2. **Baseline:** one QA metric and one validation plot from Day 2.
 3. **Sweep:** one table or observation from Day 3.
-4. **Profiling:** one measured comparison from Day 4.
+4. **Profiling:** Day 3 baseline (TPB = 4) vs Day 4 comparison (TPB = 64) wall time, and one Nsight Compute kernel observation.
 5. **Takeaway:** what changed, what you learned, and one next step.
 
 ## Exercise
@@ -73,7 +74,7 @@ python scripts/compare_baseline_vs_sweep.py
 
 ```bash
 # Collect final presentation artifacts
-find "$OUTBASE" -maxdepth 4 \( -name "metrics.json" -o -name "manifest.json" -o -name "*.png" -o -name "nsys_stats.json" \) | sort
+find "$OUTBASE" -maxdepth 5 \( -name "metrics.json" -o -name "manifest.json" -o -name "*.png" -o -name "nsys_stats.json" -o -name "*.ncu-rep" \) | sort
 ```
 
 ## Final artifact checklist
@@ -82,5 +83,7 @@ find "$OUTBASE" -maxdepth 4 \( -name "metrics.json" -o -name "manifest.json" -o 
 - Day 2 validation plots
 - Day 3 `comparison.csv`
 - one Day 3 `manifest.json`
-- Day 4 `nsys_stats.json`
+- Day 3 `day3_profile_baseline/run/profile/nsys_stats.json` (TPB = 4 baseline)
+- Day 4 `day4_profile_tpb64/run/profile/nsys_stats.json` (TPB = 64 comparison)
+- Day 4 `day4_ncu/run/ncu/ncu_report.ncu-rep` (Nsight Compute kernel report)
 - one final slide or short summary explaining what changed and what you learned
