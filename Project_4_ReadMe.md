@@ -1,15 +1,14 @@
-# Project 4: Profiling and one measurable improvement
+# Project 4: One measurable improvement and kernel profiling with Nsight Compute
 
-> **Note:** If you did not get through Project 3 (Day 3), focus there first. Project 4: Profiling and one measurable improvement is extended or optional, so do not worry if you do not finish this section. You can try it later and reach out to us if you have any problem.
-
-Day 4 adds observability and performance analysis to the workflow. Instead of just running the simulation, the goal is to understand how it behaves on the GPU and where time is being spent. Profiling a baseline run and one comparison run provides evidence that can support either a performance improvement or a reproducibility improvement. The goal is not deep kernel optimization, but to demonstrate that the workflow can be measured, compared, and improved in a disciplined way.
+On Day 3 you ran a first profiling run with Nsight Systems and got a high-level view of the simulation timeline. Day 4 builds on that. The goal is to make one concrete, measurable code change, verify that it actually changes performance, and then go deeper with NVIDIA Nsight Compute to examine two specific GPU kernels — `get_adc_values` and `tracks_current_mc` — that are known to take significant time.
 
 ## What you will learn
 
-- How to profile a `larnd-sim` workflow with NVIDIA Nsight Systems.
-- How to generate and inspect `nsys` profile summaries.
+- How to apply a GPU execution change (Threads Per Block) and measure its effect.
 - How to compare a baseline profile against a modified comparison run.
 - How to document one measurable performance or reproducibility improvement.
+- How to use NVIDIA Nsight Compute to profile specific GPU kernels.
+- How to read Nsight Compute output for `get_adc_values` and `tracks_current_mc`.
 
 ## Big picture
 
@@ -55,8 +54,10 @@ Source: example Nsight Compute summary screenshot from this project workflow.
 - **Memory transfer:** movement of data between CPU memory, GPU memory, or different GPU memory regions.
 - **GPU occupancy:** a rough measure of how much of the GPU's execution capacity is active. Higher occupancy can help, but it is not automatically better for every kernel.
 - **Nsight Systems:** an NVIDIA timeline profiler for understanding CPU/GPU scheduling and runtime behavior.
+- **Nsight Compute (`ncu`):** an NVIDIA kernel profiler that gives detailed metrics for individual GPU kernels — duration, memory throughput, compute throughput, and occupancy.
 - **TPB:** threads per block, a CUDA launch setting that controls how GPU work is grouped.
-  <!-- - **Nsight Compute:** an NVIDIA kernel profiler for detailed CUDA kernel metrics. -->
+- **`get_adc_values`:** a GPU kernel in `larnd-sim` that converts raw charge deposits into ADC values for each pixel.
+- **`tracks_current_mc`:** a GPU kernel in `larnd-sim` that computes the induced current from particle tracks on the pixel readout plane.
 
 ## Why Threads Per Block (TPB) can affect performance
 
@@ -69,21 +70,29 @@ Changing `TPB` changes how work is divided into GPU thread blocks. That can affe
 | Performance improvement | The same scientific workflow runs faster or uses resources more efficiently. | Lower wall time, shorter GPU kernel time, fewer long idle gaps, or smaller memory overhead. |
 | Reproducibility improvement | The same workflow becomes easier to rerun, compare, and explain. | Better manifests, captured GPU/system information, recorded commands, fixed seeds, or clearer output organization. |
 
-## What to look for in the profile
+## What to look for
 
-- Did the `.nsys-rep` report and `profile/nsys_stats.json` file get created?
+### In the Nsight Systems comparison
+
+- Does the comparison run change wall time or output size relative to the baseline?
 - Does the GPU timeline show long idle gaps or repeated kernels?
 - Are memory transfers or memory allocation patterns visible?
-- Does the comparison run change wall time or output size?
 - Is there enough provenance to explain how each profiled run was produced?
+
+### In the Nsight Compute kernel report
+
+- How long does each kernel (`get_adc_values`, `tracks_current_mc`) take to run?
+- Is the kernel memory-bound (high memory throughput, low compute throughput) or compute-bound (the opposite)?
+- What is the kernel occupancy — how much of the GPU's execution capacity is being used?
+- Do the two kernels behave differently from each other?
 
 ## Resources
 
-- [NVIDIA Nsight Systems](https://developer.nvidia.com/nsight-systems/get-started)
+- [NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
+- [NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)
 - [CUDA documentation](https://docs.nvidia.com/cuda/)
 - [Numba documentation](https://numba.readthedocs.io/)
 - [CuPy documentation](https://docs.cupy.dev/)
-<!-- - [NVIDIA Nsight Compute](https://developer.nvidia.com/nsight-compute) -->
 
 ## Exercise
 
@@ -194,6 +203,59 @@ sim2spec profile --run-dir "$OUTBASE/day4_profile_compare/run"
 python scripts/compare_profile_runs.py
 ```
 
+---
+
+## Kernel profiling with Nsight Compute
+
+Nsight Systems gives you a timeline view. Nsight Compute goes one level deeper: it profiles individual GPU kernels and tells you how efficiently each one uses the GPU's compute and memory resources.
+
+Two kernels in `larnd-sim` are known to dominate runtime:
+
+- **`get_adc_values`** — converts charge deposits into ADC values for each pixel.
+- **`tracks_current_mc`** — computes the induced current from particle tracks on the pixel readout plane.
+
+Run the profiler targeting only these two kernels. Use `--n_events 1` to keep the run short — Nsight Compute slows execution significantly while collecting detailed metrics.
+
+```bash
+export NCU_OUTDIR="$OUTBASE/day4_ncu"
+mkdir -p "$NCU_OUTDIR"
+
+ncu \
+  --kernel-name "get_adc_values|tracks_current_mc" \
+  --launch-count 1 \
+  --set full \
+  --force-overwrite \
+  -o "$NCU_OUTDIR/ncu_report" \
+  python3 "$LARNDSIM_DIR/cli/simulate_pixels.py" \
+    2x2 \
+    --input_filename "$INPUT_H5" \
+    --output_filename "$NCU_OUTDIR/output.h5" \
+    --rand_seed 321 \
+    --n_events 1
+```
+
+```bash
+# Print a per-kernel summary on the command line
+ncu --import "$NCU_OUTDIR/ncu_report.ncu-rep" --print-summary per-kernel
+```
+
+### What to look at in the Nsight Compute output
+
+| Metric | What it tells you |
+| --- | --- |
+| Duration | How long the kernel ran in total. |
+| Memory throughput | How fast data moved in and out of GPU memory. High = memory-bound. |
+| Compute throughput | How hard the GPU's math units were working. High = compute-bound. |
+| Occupancy | How much of the GPU's execution capacity was active. |
+
+### Nsight Compute GUI
+
+To explore the full kernel report interactively, install Nsight Compute on your laptop, download the `.ncu-rep` file from Perlmutter, and open it locally. The GUI shows the roofline chart, memory access patterns, and warp stall reasons in detail.
+
+[NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)
+
+---
+
 ### Example output
 
 Your exact times may differ depending on queue placement, node state, software version, and system load. A successful baseline-versus-comparison summary should look similar to this:
@@ -222,35 +284,37 @@ nvidia-smi -L | tee "$OUTBASE/day4_profile_compare/run/system_info/gpu_list.txt"
 
 ### What to compare and analyze
 
-- existence of profiling report files
-- approximate baseline versus comparison runtime
+- approximate baseline versus comparison runtime from `compare_profile_runs.py`
 - output file size for the baseline and comparison runs
-- whether the code change or runtime setting affects performance behavior
-- whether enough runtime environment information is captured for reproducibility
+- whether the TPB change affected performance behavior
+- duration and throughput of `get_adc_values` and `tracks_current_mc` from Nsight Compute
+- whether the two kernels are memory-bound or compute-bound
 
 ### What to show
 
-- `nsys_report*.nsys-rep`
-- `profile/nsys_stats.json`
-- a small comparison summary such as:
-  - `approx_wall_seconds`
-  - `output_size_MB`
+- `nsys_report*.nsys-rep` and `profile/nsys_stats.json`
+- a small comparison summary: `approx_wall_seconds` and `output_size_MB`
+- `day4_ncu/ncu_report.ncu-rep` and the per-kernel summary
 - optional `system_info/` files
 
 ### Achieved by end of Day
 
-- the workflow is profiled
-- baseline and comparison runs are measured side by side
-- one practical code or workflow change is evaluated
-- one performance or reproducibility improvement is documented
+- baseline and comparison runs measured side by side
+- one measurable code change (TPB) evaluated and documented
+- `get_adc_values` and `tracks_current_mc` profiled with Nsight Compute
+- kernel duration, memory throughput, and occupancy recorded
 
 ### Before you go
 
-If you want the visual timeline view shown above, the easiest approach is usually to install NVIDIA Nsight Systems on your local laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. The command-line `nsys stats` summary is useful on Perlmutter, but the local GUI is much easier for exploring the full timeline.
-
-For this project, the profiling reports are expected at:
+**Nsight Systems GUI:** install on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. Profiling reports are at:
 
 - `runs/day4_profile_baseline/run/nsys_report.nsys-rep`
 - `runs/day4_profile_compare/run/nsys_report.nsys-rep`
 
-NVIDIA Nsight Systems can be downloaded from [NVIDIA Nsight Systems - Get Started](https://developer.nvidia.com/nsight-systems/get-started).
+[NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
+
+**Nsight Compute GUI:** install on your laptop, download the `.ncu-rep` file from Perlmutter, and open it locally. The kernel report is at:
+
+- `runs/day4_ncu/ncu_report.ncu-rep`
+
+[NVIDIA Nsight Compute — Get Started](https://developer.nvidia.com/tools-overview/nsight-compute/get-started)

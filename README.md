@@ -95,8 +95,8 @@ flowchart TD
 
 - [Project_1_ReadMe.md](Project_1_ReadMe.md) — Day 1: environment setup, install, and smoke test
 - [Project_2_ReadMe.md](Project_2_ReadMe.md) — Day 2: baseline run, QA, and validation plots
-- [Project_3_ReadMe.md](Project_3_ReadMe.md) — Day 3: parameter sweeps and provenance tracking
-- [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: profiling and one measurable improvement (Extended — don't worry if you didn't get there)
+- [Project_3_ReadMe.md](Project_3_ReadMe.md) — Day 3: parameter sweeps, provenance tracking, and first profiling with Nsight Systems
+- [Project_4_ReadMe.md](Project_4_ReadMe.md) — Day 4: one measurable improvement (TPB) and kernel profiling with Nsight Compute
 - [Project_5_ReadMe.md](Project_5_ReadMe.md) — Day 5: final cross-day comparison and summary
 - [sim2spec_perlmutter_bootcamp.ipynb](JNotebook/sim2spec_perlmutter_bootcamp.ipynb) — interactive notebook for participants who prefer to complete the exercises in Jupyter instead of the terminal. On Perlmutter, use the available Python environment and select `NERSC Python` as the notebook kernel. It is meant for the exercises only. Please still read daily `Project_N_ReadMe.md` for more HPC background and context.
 - Extended or optional: the `scripts/` folder includes batch scripts for NERSC users who want to submit jobs directly with `sbatch`, as well as Python helper scripts used in the daily exercises.

@@ -1,6 +1,6 @@
-# Project 3: Parameter sweeps and provenance tracking
+# Project 3: Parameter sweeps, provenance tracking, and first profiling
 
-Day 3 expands the workflow from a single run into a controlled set of variants. Four runs are executed using the same pipeline, each with a different random seed from `configs/sweep.yaml`. Because the simulation has stochastic components, each variant will produce slightly different outputs — different packet counts, ADC distributions, and light yields. Each run is packaged with provenance information such as the seed used, environment settings, and code version. The main goal is to make result comparison systematic and reproducible.
+Day 3 expands the workflow from a single run into a controlled set of variants. Four runs are executed using the same pipeline, each with a different random seed from `configs/sweep.yaml`. Because the simulation has stochastic components, each variant will produce slightly different outputs — different packet counts, ADC distributions, and light yields. Each run is packaged with provenance information such as the seed used, environment settings, and code version. After completing the sweep, you will profile one run with NVIDIA Nsight Systems to get a first look at where the simulation spends time on the GPU.
 
 ## What you will learn
 
@@ -8,6 +8,8 @@ Day 3 expands the workflow from a single run into a controlled set of variants. 
 - How random seeds affect stochastic simulation outputs.
 - How to inspect run manifests for reproducibility metadata.
 - How to compare sweep QA metrics and save a comparison CSV.
+- How to run a first simple profiling run with NVIDIA Nsight Systems.
+- How to inspect a profiling summary and recognize where the simulation spends time.
 
 > **Note:** Each variant in `configs/sweep.yaml` uses an explicitly different random seed (42, 1337, 55555, 99999), so participants will see clear differences in packet counts and ADC distributions across the four runs in `comparison.csv`.
 
@@ -43,6 +45,10 @@ flowchart LR
 - **Provenance:** the record of where a result came from: input file, code version, command, configuration, seed, environment variables, and output path.
 - **Manifest:** the JSON file written for each run that stores provenance information.
 - **CSV comparison table:** a simple spreadsheet-like file where each row is one run variant and each column is a metric or setting.
+- **Profiling:** measuring a program while it runs to identify where time and resources are spent.
+- **Nsight Systems:** NVIDIA's timeline profiler that records CPU and GPU activity while your program runs.
+- **Wall time:** the real elapsed time from when a job starts to when it finishes.
+- **`.nsys-rep`:** the Nsight Systems report file produced by a profiling run. It can be opened in the Nsight Systems GUI on your laptop for an interactive timeline view.
 
 ## Why reproducibility matters in HPC
 
@@ -91,6 +97,7 @@ The simulation input and configuration stay the same. The random seed changes. A
 - [Python `csv` module documentation](https://docs.python.org/3/library/csv.html)
 - [Python `json` module documentation](https://docs.python.org/3/library/json.html)
 - [YAML specification](https://github.com/yaml/yaml-spec/)
+- [NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
 
 ## Exercise
 
@@ -269,8 +276,59 @@ variant,config,seed,n_events,git_commit,patch,n_packets,adc_mean,adc_std,n_light
 - one `manifest.json`
 - `comparison.csv`
 
+---
+
+## First profiling run with Nsight Systems
+
+After completing the sweep, profile one run with NVIDIA Nsight Systems to get a first look at where the simulation spends time on the GPU. This is intentionally brief — Day 4 will go deeper with a measurable code change and kernel-level analysis using Nsight Compute.
+
+### What profiling adds
+
+Running with `--profiler nsys` wraps the simulation in NVIDIA Nsight Systems. It records a timeline of CPU and GPU activity — when kernels launch, how long they run, and when memory is being used. The result is a `.nsys-rep` report file you can open in the Nsight Systems GUI, plus a JSON summary you can inspect on the command line.
+
+```bash
+# Profile one run with Nsight Systems
+sim2spec run \
+  --larndsim-dir "$LARNDSIM_DIR" \
+  --config 2x2 \
+  --input "$INPUT_H5" \
+  --outdir "$OUTBASE/day3_profile" \
+  --n-events 3 \
+  --profiler nsys
+```
+
+```bash
+# Write the profile summary
+sim2spec profile --run-dir "$OUTBASE/day3_profile/run"
+
+# Inspect the profiling artifacts
+ls "$OUTBASE/day3_profile/run"
+cat "$OUTBASE/day3_profile/run/profile/nsys_stats.json" | head -n 30
+```
+
+> **Extended/optional:** If you prefer to submit the profiling run as a batch job, you can use the provided sbatch script. Make sure to replace `<your_account>` with your NERSC project account, then submit with:
+>
+> ```bash
+> sbatch scripts/sbatch_day3_profile.sh
+> ```
+
+### What to look for
+
+- Does `nsys_report.nsys-rep` appear in the run directory?
+- Does `profile/nsys_stats.json` contain timing information?
+- How does the profiled run wall time compare to the unprofiiled sweep variants?
+
+### Nsight Systems GUI
+
+To view the full interactive timeline, install NVIDIA Nsight Systems on your laptop, download the `.nsys-rep` file from Perlmutter, and open it locally. You do not need the GUI for the command-line summary, but it is the best way to explore the CPU and GPU timeline visually. Day 4 will use this view as a starting point.
+
+[NVIDIA Nsight Systems — Get Started](https://developer.nvidia.com/nsight-systems/get-started)
+
 ### Achieved by end of Day
 
 - multiple controlled runs are executed
 - run metadata is captured
 - outputs can be compared systematically
+- first profiling run is complete
+- profiling report and JSON summary are saved
+- Nsight Systems GUI is downloaded and ready for Day 4
