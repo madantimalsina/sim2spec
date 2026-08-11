@@ -117,12 +117,14 @@ def run_larndsim(
         write_json(rd / "command_profiled.json", {"cmd": cmd})
 
     if profiler == "ncu":
-        subprocess.run(["dcgmi", "profile", "--pause"], env=env)
+        subprocess.run(["dcgmi", "profile", "--pause"], env=env,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         proc = subprocess.run(cmd, env=env, cwd=str(rd))
     finally:
         if profiler == "ncu":
-            subprocess.run(["dcgmi", "profile", "--resume"], env=env)
+            subprocess.run(["dcgmi", "profile", "--resume"], env=env,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     if proc.returncode != 0:
         write_json(rd / "run_failed.json", {"returncode": proc.returncode, "cmd": cmd})

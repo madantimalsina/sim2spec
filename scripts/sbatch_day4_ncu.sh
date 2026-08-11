@@ -32,5 +32,5 @@ sim2spec run \
   --config 2x2 \
   --input "$INPUT_H5" \
   --outdir "$OUTBASE/day4_ncu" \
-  --n-events 3 \
+  --n-events 2 \
   --profiler ncu
