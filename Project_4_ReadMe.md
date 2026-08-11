@@ -26,14 +26,6 @@ flowchart LR
     end
 ```
 
-## What is TPB?
-
-`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
-
-## Why Threads Per Block (TPB) can affect performance
-
-Changing `TPB` changes how work is divided into GPU thread blocks. That can affect occupancy, register use, scheduling overhead, memory access patterns, and the number of blocks launched. A larger `TPB` is not guaranteed to be faster, so the important lesson is to measure the baseline and comparison runs instead of guessing.
-
 ## Performance vs reproducibility improvement
 
 | Improvement type | What it means | Example evidence |
@@ -149,6 +141,14 @@ sim2spec profile --run-dir "$OUTBASE/day4_profile_tpb64/run"
 # Compare Day 3 baseline (TPB = 4) vs Day 4 comparison (TPB = 64)
 python scripts/compare_profile_runs.py
 ```
+
+### What is TPB?
+
+`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
+
+### Why Threads Per Block (TPB) can affect performance
+
+Changing `TPB` changes how work is divided into GPU thread blocks. That can affect occupancy, register use, scheduling overhead, memory access patterns, and the number of blocks launched. A larger `TPB` is not guaranteed to be faster, so the important lesson is to measure the baseline and comparison runs instead of guessing.
 
 ---
 
