@@ -109,14 +109,21 @@ def run_larndsim(
         cmd = [
             "ncu",
             "--kernel-id",
-            "::regex:get_adc_values|tracks_current_mc:",
+            "::regex:get_adc_values|tracks_current_mc|get_rack_pixel_map2:10",
             "-o",
             str(ncu_dir / "ncu_report"),
             "--force-overwrite",
         ] + cmd
         write_json(rd / "command_profiled.json", {"cmd": cmd})
 
-    proc = subprocess.run(cmd, env=env, cwd=str(rd))
+    if profiler == "ncu":
+        subprocess.run(["dcgmi", "profile", "--pause"], env=env)
+    try:
+        proc = subprocess.run(cmd, env=env, cwd=str(rd))
+    finally:
+        if profiler == "ncu":
+            subprocess.run(["dcgmi", "profile", "--resume"], env=env)
+
     if proc.returncode != 0:
         write_json(rd / "run_failed.json", {"returncode": proc.returncode, "cmd": cmd})
         print(
