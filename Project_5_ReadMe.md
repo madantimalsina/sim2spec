@@ -74,16 +74,28 @@ python scripts/compare_baseline_vs_sweep.py
 
 ```bash
 # Collect final presentation artifacts
-find "$OUTBASE" -maxdepth 5 \( -name "metrics.json" -o -name "manifest.json" -o -name "*.png" -o -name "nsys_stats.json" -o -name "*.ncu-rep" \) | sort
+find "$OUTBASE" -maxdepth 5 \( \
+  -name "metrics.json" \
+  -o -name "manifest.json" \
+  -o -name "command.json" \
+  -o -name "command_profiled.json" \
+  -o -name "nsys_stats.json" \
+  -o -name "*.png" \
+  -o -name "*.csv" \
+  -o -name "*.nsys-rep" \
+  -o -name "*.ncu-rep" \
+\) | sort
 ```
 
 ## Final artifact checklist
 
-- Day 2 baseline `metrics.json`
-- Day 2 validation plots
-- Day 3 `comparison.csv`
-- one Day 3 `manifest.json`
-- Day 3 `day3_profile_baseline/run/profile/nsys_stats.json` (TPB = 4 baseline)
-- Day 4 `day4_profile_tpb64/run/profile/nsys_stats.json` (TPB = 64 comparison)
+- Day 2 baseline `qa/metrics.json` and QA plots (`adc_hist.png`, `timestamp_hist.png`, `light_wvfm0.png`)
+- Day 2 validation plots (`plot_charge_vs_time.png`, `plot_hits_per_event.png`, `plot_single_waveform.png`)
+- Day 2 `manifest.json` and `command.json`
+- Day 3 `comparison.csv` (sweep comparison across seeds)
+- Day 3 `day3_profile_baseline/run/profile/nsys_stats.json` (TPB = 4 nsys summary)
+- Day 3 `day3_profile_baseline/run/nsys_report.nsys-rep` (TPB = 4 Nsight Systems report)
+- Day 4 `day4_profile_tpb64/run/profile/nsys_stats.json` (TPB = 64 nsys summary)
+- Day 4 `day4_profile_tpb64/run/nsys_report.nsys-rep` (TPB = 64 Nsight Systems report)
 - Day 4 `day4_ncu/run/ncu/ncu_report.ncu-rep` (Nsight Compute kernel report)
 - one final slide or short summary explaining what changed and what you learned
