@@ -150,6 +150,8 @@ Source: [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-g
 
 `TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel, which is why you measure before changing anything.
 
+The figure above shows a "grid" of 64 threads grouped into 8 blocks with 8 threads per block. (TPB = 8)
+
 ### Why Threads Per Block (TPB) can affect performance
 
 <img src="assets/CUDABlocksMapToSM.png" alt="Diagram of how CUDA maps a grid of threads blocks onto SMs" width="900">
