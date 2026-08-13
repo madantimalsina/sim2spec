@@ -1,6 +1,6 @@
 # Project 4: One measurable improvement and kernel profiling with Nsight Compute
 
-On Day 3 you ran a first profiling run with Nsight Systems and got a high-level view of the simulation timeline. Day 4 builds on that. The goal is to make one concrete, measurable code change, verify that it actually changes performance, and then go deeper with NVIDIA Nsight Compute to examine two specific GPU kernels — `get_adc_values` and `tracks_current_mc` — that are known to take significant time.
+On Day 3 you ran a first profiling run with Nsight Systems and got a high-level view of the simulation timeline. Day 4 builds on that. The goal is to make one concrete, measurable code change, verify that it actually changes performance, and then go deeper with NVIDIA Nsight Compute to examine two specific GPU kernels , `get_adc_values` and `tracks_current_mc`, that are known to take significant time.
 
 ## What you will learn
 
@@ -46,7 +46,7 @@ flowchart LR
 
 - How long does each kernel (`get_adc_values`, `tracks_current_mc`) take to run?
 - Is the kernel memory-bound (high memory throughput, low compute throughput) or compute-bound (the opposite)?
-- What is the kernel occupancy — how much of the GPU's execution capacity is being used?
+- What is the kernel occupancy, how much of the GPU's execution capacity is being used?
 - Do the two kernels behave differently from each other?
 
 ## Resources
@@ -144,7 +144,7 @@ python scripts/compare_profile_runs.py
 
 ### What is TPB?
 
-`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel — which is why you measure before changing anything.
+`TPB` stands for threads per block. It is a CUDA setting that controls how many GPU threads are grouped together when launching a kernel. The default in `larnd-sim` is `TPB = 4`. Changing it affects how work is divided across the GPU and can influence runtime, but the effect depends on the specific kernel, which is why you measure before changing anything.
 
 ### Why Threads Per Block (TPB) can affect performance
 
@@ -218,8 +218,8 @@ ncu --import "$OUTBASE/day4_ncu/run/ncu/ncu_report.ncu-rep" --print-summary per-
 | Metric | What it tells you |
 | --- | --- |
 | Duration | How long the kernel ran in total. |
-| Memory throughput | How fast data moved in and out of GPU memory. High = memory-bound. |
-| Compute throughput | How hard the GPU's math units were working. High = compute-bound. |
+| Memory throughput | How fast data moved in and out of GPU memory. High --> memory-bound. |
+| Compute throughput | How hard the GPU's math units were working. High --> compute-bound. |
 | Occupancy | How much of the GPU's execution capacity was active. |
 
 ### Nsight Compute GUI
